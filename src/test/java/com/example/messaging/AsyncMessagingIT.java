@@ -35,6 +35,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 import org.testcontainers.containers.BindMode;
+import java.util.Comparator;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -268,7 +269,11 @@ class AsyncMessagingIT {
         if (apiImage != null && !apiImage.isBlank()) {
             container = new GenericContainer<>(DockerImageName.parse(apiImage));
         } else {
-            container = new GenericContainer<>(new ImageFromDockerfile(DEFAULT_API_IMAGE).withFileFromPath(".", Paths.get(".")));
+            Path appJarPath = resolveLocalAppJar();
+            container = new GenericContainer<>(DockerImageName.parse("eclipse-temurin:17-jre"))
+                    .withWorkingDirectory("/app")
+                    .withCopyFileToContainer(MountableFile.forHostPath(appJarPath), "/app/app.jar")
+                    .withCommand("java", "-jar", "/app/app.jar");
         }
 
         Path agentJarPath = Paths.get(
@@ -317,6 +322,26 @@ class AsyncMessagingIT {
                 .withStartupAttempts(3)
                 .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(frame -> printFrame("API", frame));
+    }
+
+    private static Path resolveLocalAppJar() {
+        Path targetDir = Paths.get("target").toAbsolutePath();
+        if (!Files.isDirectory(targetDir)) {
+            throw new IllegalStateException("target directory not found at " + targetDir);
+        }
+
+        try (var stream = Files.list(targetDir)) {
+            return stream
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString().endsWith(".jar"))
+                    .filter(p -> !p.getFileName().toString().endsWith(".jar.original"))
+                    .filter(p -> !p.getFileName().toString().endsWith("-sources.jar"))
+                    .filter(p -> !p.getFileName().toString().endsWith("-javadoc.jar"))
+                    .max(Comparator.comparingLong(p -> p.toFile().lastModified()))
+                    .orElseThrow(() -> new IllegalStateException("No application jar found in " + targetDir));
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to resolve application jar in " + targetDir, e);
+        }
     }
 
     private void waitForRabbitReady() {

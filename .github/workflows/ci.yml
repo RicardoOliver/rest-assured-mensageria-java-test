@@ -43,14 +43,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y trivy
           trivy --version
-      
-      - name: Docker Build (app image)
-        run: docker build -t app:${{ github.sha }} .
 
       - name: Run Tests + Coverage Gate
         run: mvn -B -ntp -e verify -Pci,it
-        env:
-          API_IMAGE: app:${{ github.sha }}
 
       - name: Trivy FS Scan (SARIF)
         run: trivy fs --severity CRITICAL --exit-code 0 --no-progress --format sarif --output trivy-fs.sarif .
@@ -61,6 +56,9 @@ jobs:
         with:
           sarif_file: trivy-fs.sarif
           category: trivy-fs
+
+      - name: Docker Build (app image)
+        run: docker build -t app:${{ github.sha }} .
 
       - name: Trivy Scan (SARIF)
         run: trivy image --severity CRITICAL --exit-code 0 --no-progress --format sarif --output trivy-image.sarif app:${{ github.sha }}
