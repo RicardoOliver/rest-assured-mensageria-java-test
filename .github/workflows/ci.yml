@@ -25,28 +25,52 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
-
-      - name: Install Trivy
-        run: |
-          set -euo pipefail
-          TRIVY_VERSION="0.56.1"
-          curl -sSfL -o trivy.tar.gz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
-          tar -xzf trivy.tar.gz trivy
-          sudo install -m 0755 trivy /usr/local/bin/trivy
-          trivy --version
-
-      - name: Trivy Scan (SARIF)
-        run: trivy fs --exit-code 0 --no-progress --format sarif --output trivy.sarif .
-
-      - name: Upload Trivy SARIF
-        if: ${{ always() && hashFiles('trivy.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: trivy.sarif
-
+      
       - name: Run Tests + Coverage Gate
         run: mvn -B -ntp verify -Pci,it
 
+      - name: Trivy FS Scan (SARIF)
+        uses: aquasecurity/trivy-action@v0.29.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-fs.sarif
+          severity: CRITICAL
+          exit-code: "0"
+
+      - name: Upload Trivy FS SARIF
+        if: ${{ always() && hashFiles('trivy-fs.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-fs
+
+      - name: Docker Build (app image)
+        run: docker build -t app:${{ github.sha }} .
+
+      - name: Trivy Scan (SARIF)
+        uses: aquasecurity/trivy-action@v0.29.0
+        with:
+          scan-type: image
+          image-ref: app:${{ github.sha }}
+          format: sarif
+          output: trivy-image.sarif
+          severity: CRITICAL
+          exit-code: "0"
+
+      - name: Upload Trivy Image SARIF
+        if: ${{ always() && hashFiles('trivy-image.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-image
+
       - name: Vulnerability Scan (Critical Gate)
-        run: trivy fs --severity CRITICAL --exit-code 1 --no-progress .
+        uses: aquasecurity/trivy-action@v0.29.0
+        with:
+          scan-type: image
+          image-ref: app:${{ github.sha }}
+          severity: CRITICAL
+          exit-code: "1"
 
