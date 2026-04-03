@@ -1,6 +1,6 @@
 # Teste de Mesa (Dry Run) — Fluxo Assíncrono EDA
 
-Objetivo: descrever, de forma técnica e “humanizada”, o que acontece do `POST` na API até a persistência final (ou DLQ), com o estado esperado das variáveis, filas e banco.
+Objetivo: descrever, de forma técnica, o que acontece do `POST` na API até a persistência final (ou DLQ), com o estado esperado das variáveis, filas e banco.
 
 ## Contexto e contratos
 

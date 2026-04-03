@@ -24,8 +24,7 @@ Topologia RabbitMQ:
 - JUnit 5
 - Rest Assured
 - Awaitility
-- Testcontainers (integração via `docker-compose.yml`)
-- Docker Compose (ambiente de integração)
+- Testcontainers (Postgres + RabbitMQ + API em containers durante os ITs)
 - JaCoCo (coverage gate em CI)
 - Trivy (vulnerability gate em CI)
 
@@ -42,7 +41,7 @@ Pré-requisitos:
 - Docker + Docker Compose
 - Java 17 + Maven
 
-### Subir apenas API + Broker + Banco
+### Subir apenas API + Broker + Banco (manual)
 
 ```bash
 docker compose up --build
@@ -64,7 +63,7 @@ Unitários (rápidos, não exigem Docker):
 mvn -B -ntp test
 ```
 
-Integração (ponta-a-ponta; exige Docker e sobe o ambiente via compose):
+Integração (ponta-a-ponta; exige Docker e sobe o ambiente via Testcontainers):
 
 ```bash
 mvn -B -ntp verify -Pit
