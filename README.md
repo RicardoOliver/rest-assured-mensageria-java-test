@@ -111,6 +111,7 @@ k6 run -e BASE_URL=http://localhost:8080 k6/loadtest.js
 Detalhamento técnico do fluxo assíncrono, estados esperados e pontos de verificação:
 - [docs/teste-de-mesa.md](docs/teste-de-mesa.md)
 - [docs/docker-wsl-grafana-prometheus.md](docs/docker-wsl-grafana-prometheus.md)
+- [docs/prometheus-queries.md](docs/prometheus-queries.md)
 
 ## Relatórios no GitHub
 
