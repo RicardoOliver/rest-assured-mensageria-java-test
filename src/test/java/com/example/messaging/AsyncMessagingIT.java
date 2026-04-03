@@ -36,6 +36,8 @@ import org.testcontainers.utility.DockerImageName;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AsyncMessagingIT {
     static Network network = Network.newNetwork();
+    static final String RABBIT_APP_USER = "app";
+    static final String RABBIT_APP_PASSWORD = "app";
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -51,8 +53,8 @@ class AsyncMessagingIT {
     @Container
     static GenericContainer<?> rabbitmq =
             new GenericContainer<>(DockerImageName.parse("rabbitmq:3.13-management"))
-                    .withEnv("RABBITMQ_DEFAULT_USER", "app")
-                    .withEnv("RABBITMQ_DEFAULT_PASS", "app")
+                    .withEnv("RABBITMQ_DEFAULT_USER", RABBIT_APP_USER)
+                    .withEnv("RABBITMQ_DEFAULT_PASS", RABBIT_APP_PASSWORD)
                     .withExposedPorts(5672, 15672)
                     .withNetwork(network)
                     .withNetworkAliases("rabbitmq")
@@ -66,8 +68,8 @@ class AsyncMessagingIT {
                             .withFileFromPath(".", Paths.get(".")))
                     .withEnv("RABBIT_HOST", "rabbitmq")
                     .withEnv("RABBIT_PORT", "5672")
-                    .withEnv("RABBIT_USER", "app")
-                    .withEnv("RABBIT_PASSWORD", "app")
+                    .withEnv("RABBIT_USER", RABBIT_APP_USER)
+                    .withEnv("RABBIT_PASSWORD", RABBIT_APP_PASSWORD)
                     .withEnv("POSTGRES_HOST", "postgres")
                     .withEnv("POSTGRES_PORT", "5432")
                     .withEnv("POSTGRES_DB", "app")
@@ -84,12 +86,16 @@ class AsyncMessagingIT {
     private String apiBaseUrl;
     private String rabbitManagementBaseUrl;
     private String jdbcUrl;
+    private MgmtCredentials rabbitMgmtCredentials;
+
+    private record MgmtCredentials(String user, String password) {}
 
     @BeforeEach
     void resetState() {
         apiBaseUrl = "http://%s:%d".formatted(api.getHost(), api.getMappedPort(8080));
         rabbitManagementBaseUrl = "http://%s:%d".formatted(rabbitmq.getHost(), rabbitmq.getMappedPort(15672));
         jdbcUrl = postgres.getJdbcUrl();
+        rabbitMgmtCredentials = resolveRabbitMgmtCredentials();
 
         waitForApiHealthy();
         waitForRabbitReady();
@@ -239,7 +245,7 @@ class AsyncMessagingIT {
         var response = RestAssured
                 .given()
                 .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic("app", "app")
+                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
                 .when()
                 .delete("/api/queues/%2F/" + RabbitTopologyConfig.DLQ_QUEUE + "/contents")
                 .andReturn();
@@ -257,7 +263,7 @@ class AsyncMessagingIT {
         var response = RestAssured
                 .given()
                 .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic("app", "app")
+                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
                 .when()
                 .get("/api/queues/%2F/" + RabbitTopologyConfig.DLQ_QUEUE)
                 .andReturn();
@@ -284,7 +290,18 @@ class AsyncMessagingIT {
     }
 
     private void waitForRabbitReady() {
-        ensureRabbitTopologyDeclared();
+        Awaitility.await()
+                .atMost(Duration.ofMinutes(2))
+                .pollInterval(Duration.ofSeconds(1))
+                .until(() -> {
+                    try {
+                        ensureRabbitTopologyDeclared();
+                        ensureRabbitAppPermissions();
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                });
 
         AtomicInteger lastStatusMain = new AtomicInteger(-1);
         AtomicReference<String> lastBodyMain = new AtomicReference<>("");
@@ -304,7 +321,7 @@ class AsyncMessagingIT {
                             var main = RestAssured
                                     .given()
                                     .baseUri(rabbitManagementBaseUrl)
-                                    .auth().preemptive().basic("app", "app")
+                                    .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
                                     .when()
                                     .get(mainQueuePath)
                                     .andReturn();
@@ -314,7 +331,7 @@ class AsyncMessagingIT {
                             var dlq = RestAssured
                                     .given()
                                     .baseUri(rabbitManagementBaseUrl)
-                                    .auth().preemptive().basic("app", "app")
+                                    .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
                                     .when()
                                     .get(dlqQueuePath)
                                     .andReturn();
@@ -377,7 +394,7 @@ class AsyncMessagingIT {
         var response = RestAssured
                 .given()
                 .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic("app", "app")
+                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "type", "direct",
@@ -402,7 +419,7 @@ class AsyncMessagingIT {
         var response = RestAssured
                 .given()
                 .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic("app", "app")
+                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "durable", true,
@@ -425,7 +442,7 @@ class AsyncMessagingIT {
         var response = RestAssured
                 .given()
                 .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic("app", "app")
+                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "routing_key", routingKey,
@@ -450,6 +467,58 @@ class AsyncMessagingIT {
 
     private static String encodePathSegment(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
+    private MgmtCredentials resolveRabbitMgmtCredentials() {
+        MgmtCredentials app = new MgmtCredentials(RABBIT_APP_USER, RABBIT_APP_PASSWORD);
+        if (canCallWhoAmI(app)) {
+            return app;
+        }
+        MgmtCredentials guest = new MgmtCredentials("guest", "guest");
+        if (canCallWhoAmI(guest)) {
+            return guest;
+        }
+        throw new IllegalStateException("Unable to authenticate to RabbitMQ Management API with app/app or guest/guest");
+    }
+
+    private boolean canCallWhoAmI(MgmtCredentials credentials) {
+        try {
+            var response = RestAssured
+                    .given()
+                    .baseUri(rabbitManagementBaseUrl)
+                    .auth().preemptive().basic(credentials.user(), credentials.password())
+                    .when()
+                    .get("/api/whoami")
+                    .andReturn();
+            return response.getStatusCode() == 200;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void ensureRabbitAppPermissions() {
+        String path = "/api/permissions/%2F/" + encodePathSegment(RABBIT_APP_USER);
+        var response = RestAssured
+                .given()
+                .baseUri(rabbitManagementBaseUrl)
+                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "configure", ".*",
+                        "write", ".*",
+                        "read", ".*"
+                ))
+                .when()
+                .put(path)
+                .andReturn();
+
+        int statusCode = response.getStatusCode();
+        if (statusCode == 201 || statusCode == 204) {
+            return;
+        }
+        throw new IllegalStateException(
+                "Failed to set permissions for user " + RABBIT_APP_USER + ". status=" + statusCode + " body=" + response.getBody().asString()
+        );
     }
 
     private void waitForApiHealthy() {
