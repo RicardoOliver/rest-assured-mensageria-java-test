@@ -27,7 +27,7 @@ jobs:
           sudo apt-get install -y docker-compose
 
       - name: Vulnerability Scan (Critical Gate)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.28.0
         with:
           scan-type: fs
           scan-ref: .
