@@ -37,8 +37,11 @@ class AsyncMessagingIT {
                     .withExposedService("rabbitmq", 15672, Wait.forHttp("/").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(3)))
                     .withExposedService("postgres", 5432, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
                     .withLogConsumer("api", frame -> printFrame("API", frame))
+                    .withLogConsumer("api_1", frame -> printFrame("API", frame))
                     .withLogConsumer("rabbitmq", frame -> printFrame("RABBITMQ", frame))
-                    .withLogConsumer("postgres", frame -> printFrame("POSTGRES", frame));
+                    .withLogConsumer("rabbitmq_1", frame -> printFrame("RABBITMQ", frame))
+                    .withLogConsumer("postgres", frame -> printFrame("POSTGRES", frame))
+                    .withLogConsumer("postgres_1", frame -> printFrame("POSTGRES", frame));
 
     private String apiBaseUrl;
     private String rabbitManagementBaseUrl;
