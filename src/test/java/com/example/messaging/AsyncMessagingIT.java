@@ -15,6 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -126,16 +127,7 @@ class AsyncMessagingIT {
                 .pollInterval(Duration.ofMillis(250))
                 .until(() -> countMessagesById(messageId) == 1);
 
-        // Checagem adicional: caminho feliz não deve produzir mensagens na DLQ.
-        RestAssured
-                .given()
-                .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic("app", "app")
-                .when()
-                .get("/api/queues/%2F/events.dlq")
-                .then()
-                .statusCode(200)
-                .body("messages", equalTo(0));
+        Assertions.assertEquals(0, dlqMessageCount());
     }
 
     @Test
@@ -240,29 +232,43 @@ class AsyncMessagingIT {
     }
 
     private void purgeDlq() {
-        // RabbitMQ Management API: limpa o conteúdo da fila para isolamento de teste.
-        RestAssured
+        var response = RestAssured
                 .given()
                 .baseUri(rabbitManagementBaseUrl)
                 .auth().preemptive().basic("app", "app")
                 .when()
                 .delete("/api/queues/%2F/events.dlq/contents")
-                .then()
-                .statusCode(204);
+                .andReturn();
+
+        int statusCode = response.getStatusCode();
+        if (statusCode == 204 || statusCode == 404) {
+            return;
+        }
+        throw new IllegalStateException(
+                "Unexpected status when purging DLQ. status=" + statusCode + " body=" + response.getBody().asString()
+        );
     }
 
     private int dlqMessageCount() {
-        return RestAssured
+        var response = RestAssured
                 .given()
                 .baseUri(rabbitManagementBaseUrl)
                 .auth().preemptive().basic("app", "app")
                 .when()
                 .get("/api/queues/%2F/events.dlq")
-                .then()
-                .statusCode(200)
-                .extract()
-                .jsonPath()
-                .getInt("messages");
+                .andReturn();
+
+        int statusCode = response.getStatusCode();
+        if (statusCode == 404) {
+            return 0;
+        }
+        if (statusCode != 200) {
+            throw new IllegalStateException(
+                    "Unexpected status when reading DLQ. status=" + statusCode + " body=" + response.getBody().asString()
+            );
+        }
+
+        return response.jsonPath().getInt("messages");
     }
 
     private static void printFrame(String serviceName, OutputFrame frame) {
