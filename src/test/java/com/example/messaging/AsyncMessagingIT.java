@@ -325,7 +325,10 @@ class AsyncMessagingIT {
                 container.withEnv("POSTGRES_PASSWORD", DB_PASSWORD);
                 container.withEnv("SERVER_SHUTDOWN", "immediate");
                 container.withEnv("SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE", "5s");
-                container.withEnv("JAVA_TOOL_OPTIONS", jacocoAgentOpts + " -Xms128m -Xmx512m");
+                container.withEnv(
+                                "JAVA_TOOL_OPTIONS",
+                                jacocoAgentOpts + " --add-opens=java.base/java.io=ALL-UNNAMED -Xms128m -Xmx512m"
+                );
                 container.withExposedPorts(8080, JACOCO_TCP_PORT);
                 container.withNetwork(network);
                 container.dependsOn(postgres, rabbitmq);
