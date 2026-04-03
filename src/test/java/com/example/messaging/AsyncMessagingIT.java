@@ -12,16 +12,17 @@ import java.sql.ResultSet;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -32,12 +33,12 @@ class AsyncMessagingIT {
     static DockerComposeContainer<?> environment =
             new DockerComposeContainer<>(new File("docker-compose.yml"))
                     .withBuild(true)
-                    .withExposedService("api", 8080, Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(3)))
+                    .withExposedService("api", 8080, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
                     .withExposedService("rabbitmq", 15672, Wait.forHttp("/").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(3)))
                     .withExposedService("postgres", 5432, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
-                    .withLogConsumer("api", new Slf4jLogConsumer(LoggerFactory.getLogger("API-CONTAINER")))
-                    .withLogConsumer("rabbitmq", new Slf4jLogConsumer(LoggerFactory.getLogger("RABBITMQ-CONTAINER")))
-                    .withLogConsumer("postgres", new Slf4jLogConsumer(LoggerFactory.getLogger("POSTGRES-CONTAINER")));
+                    .withLogConsumer("api", frame -> printFrame("API", frame))
+                    .withLogConsumer("rabbitmq", frame -> printFrame("RABBITMQ", frame))
+                    .withLogConsumer("postgres", frame -> printFrame("POSTGRES", frame));
 
     private String apiBaseUrl;
     private String rabbitManagementBaseUrl;
@@ -58,6 +59,8 @@ class AsyncMessagingIT {
         String postgresHost = environment.getServiceHost("postgres", 5432);
         Integer postgresPort = environment.getServicePort("postgres", 5432);
         jdbcUrl = "jdbc:postgresql://%s:%d/app".formatted(postgresHost, postgresPort);
+
+        waitForApiHealthy();
 
         // Mantém os testes determinísticos: zera DLQ e tabela, para que asserções de contagem sejam confiáveis.
         purgeDlq();
@@ -233,6 +236,47 @@ class AsyncMessagingIT {
                 .extract()
                 .jsonPath()
                 .getInt("messages");
+    }
+
+    private static void printFrame(String serviceName, OutputFrame frame) {
+        String utf8String = frame.getUtf8String();
+        if (utf8String == null || utf8String.isBlank()) {
+            return;
+        }
+        System.out.print(("[" + serviceName + "] ") + utf8String);
+    }
+
+    private void waitForApiHealthy() {
+        AtomicInteger lastStatus = new AtomicInteger(-1);
+        AtomicReference<String> lastBody = new AtomicReference<>("");
+
+        try {
+            Awaitility.await()
+                    .atMost(Duration.ofMinutes(3))
+                    .pollInterval(Duration.ofSeconds(1))
+                    .until(() -> {
+                        try {
+                            var response = RestAssured
+                                    .given()
+                                    .baseUri(apiBaseUrl)
+                                    .when()
+                                    .get("/actuator/health")
+                                    .andReturn();
+                            lastStatus.set(response.getStatusCode());
+                            lastBody.set(response.getBody() == null ? "" : response.getBody().asString());
+                            return response.getStatusCode() == 200;
+                        } catch (Exception e) {
+                            lastStatus.set(-1);
+                            lastBody.set(e.toString());
+                            return false;
+                        }
+                    });
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "API did not become healthy. status=" + lastStatus.get() + " body=" + lastBody.get(),
+                    e
+            );
+        }
     }
 }
 

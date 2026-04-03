@@ -24,6 +24,13 @@ jobs:
       - name: Ensure Docker available
         run: docker version
 
+      - name: Pre-pull Docker images
+        run: |
+          docker pull rabbitmq:3.13-management
+          docker pull postgres:16-alpine
+          docker pull maven:3.9.9-eclipse-temurin-17
+          docker pull eclipse-temurin:17-jre
+
       - name: Install Trivy
         run: |
           set -euo pipefail
@@ -38,7 +45,7 @@ jobs:
           trivy --version
       
       - name: Run Tests + Coverage Gate
-        run: mvn -B -ntp verify -Pci,it
+        run: mvn -B -ntp -e verify -Pci,it
 
       - name: Trivy FS Scan (SARIF)
         run: trivy fs --severity CRITICAL --exit-code 0 --no-progress --format sarif --output trivy-fs.sarif .
