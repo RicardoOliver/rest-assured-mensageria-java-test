@@ -22,6 +22,7 @@
         <awaitility.version>4.2.1</awaitility.version>
         <testcontainers.version>1.20.3</testcontainers.version>
         <jacoco.version>0.8.12</jacoco.version>
+        <jacoco.tcp.port>36300</jacoco.tcp.port>
         <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
         <skipITs>true</skipITs>
     </properties>
@@ -115,12 +116,6 @@
             <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.jacoco</groupId>
-            <artifactId>org.jacoco.core</artifactId>
-            <version>${jacoco.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -175,6 +170,21 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                    </execution>
+                    <execution>
+                        <id>dump-it</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>dump</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skipITs}</skip>
+                            <address>localhost</address>
+                            <port>${jacoco.tcp.port}</port>
+                            <destFile>${project.build.directory}/jacoco/jacoco-it.exec</destFile>
+                            <reset>false</reset>
+                            <append>false</append>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

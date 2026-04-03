@@ -15,16 +15,15 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import org.jacoco.core.tools.ExecDumpClient;
 import org.awaitility.Awaitility;
 import static org.awaitility.pollinterval.FibonacciPollInterval.fibonacci;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import com.example.messaging.messaging.RabbitTopologyConfig;
 import com.rabbitmq.client.ConnectionFactory;
+import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -50,9 +49,7 @@ class AsyncMessagingIT {
     static final String RUN_ID = "it-" + UUID.randomUUID();
     static final org.awaitility.pollinterval.PollInterval DEFAULT_POLL_INTERVAL = fibonacci(10, TimeUnit.MILLISECONDS);
     static final String JACOCO_VERSION = "0.8.12";
-    static final Path JACOCO_DIR = Paths.get("target", "jacoco").toAbsolutePath();
-    static final Path JACOCO_IT_EXEC = JACOCO_DIR.resolve("jacoco-it.exec");
-    static final int JACOCO_TCP_PORT = 6300;
+    static final int JACOCO_TCP_PORT = Integer.getInteger("jacoco.tcp.port", 36300);
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -91,33 +88,6 @@ class AsyncMessagingIT {
         waitForRabbitReady();
 
         purgeDlq();
-    }
-
-    @AfterAll
-    void dumpJacocoFromApiContainer() {
-        try {
-            Files.createDirectories(JACOCO_DIR);
-
-            int port = api.getMappedPort(JACOCO_TCP_PORT);
-            ExecDumpClient client = new ExecDumpClient();
-            client.setReset(false);
-            client.setRetryCount(10);
-            client.setRetryDelay(1000);
-
-            var loader = client.dump(api.getHost(), port);
-            Files.deleteIfExists(JACOCO_IT_EXEC);
-            loader.save(JACOCO_IT_EXEC.toFile(), false);
-
-            int coveredClasses = loader.getExecutionDataStore().getContents().size();
-            long fileSize = Files.size(JACOCO_IT_EXEC);
-            System.out.println("[JACOCO] dumped exec data: file=" + JACOCO_IT_EXEC + " size=" + fileSize + " classes=" + coveredClasses);
-
-            if (coveredClasses == 0) {
-                throw new IllegalStateException("JaCoCo dump returned 0 classes. file=" + JACOCO_IT_EXEC + " size=" + fileSize);
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to dump JaCoCo exec data from API container", e);
-        }
     }
 
     @Test
@@ -293,12 +263,12 @@ class AsyncMessagingIT {
 
     private static GenericContainer<?> createApiContainer() {
         String apiImage = System.getenv(API_IMAGE_ENV);
-        GenericContainer<?> container;
+        FixedHostPortGenericContainer container;
         if (apiImage != null && !apiImage.isBlank()) {
-            container = new GenericContainer<>(DockerImageName.parse(apiImage));
+            container = new FixedHostPortGenericContainer(apiImage);
         } else {
             Path appJarPath = resolveLocalAppJar();
-            container = new GenericContainer<>(DockerImageName.parse("eclipse-temurin:17-jre"))
+            container = new FixedHostPortGenericContainer("eclipse-temurin:17-jre")
                     .withWorkingDirectory("/app")
                     .withCopyFileToContainer(MountableFile.forHostPath(appJarPath), "/app/app.jar")
                     .withCommand("java", "-jar", "/app/app.jar");
@@ -316,12 +286,6 @@ class AsyncMessagingIT {
         );
         if (!Files.exists(agentJarPath)) {
             throw new IllegalStateException("JaCoCo agent jar not found at " + agentJarPath);
-        }
-
-        try {
-            Files.createDirectories(JACOCO_DIR);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to prepare JaCoCo output directory at " + JACOCO_DIR, e);
         }
 
         String jacocoAgentOpts =
@@ -343,7 +307,8 @@ class AsyncMessagingIT {
                 .withEnv("SERVER_SHUTDOWN", "immediate")
                 .withEnv("SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE", "5s")
                 .withEnv("JAVA_TOOL_OPTIONS", jacocoAgentOpts + " -Xms128m -Xmx512m")
-                .withExposedPorts(8080, JACOCO_TCP_PORT)
+                .withFixedExposedPort(JACOCO_TCP_PORT, JACOCO_TCP_PORT)
+                .withExposedPorts(8080)
                 .withNetwork(network)
                 .dependsOn(postgres, rabbitmq)
                 .withStartupAttempts(3)
