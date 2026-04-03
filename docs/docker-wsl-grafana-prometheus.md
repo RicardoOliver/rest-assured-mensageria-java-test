@@ -64,6 +64,9 @@ Se aparecer `manifest unknown` para o exporter do RabbitMQ, use uma tag válida 
 
 - Grafana: `http://localhost:3000` (admin/admin)
 - Prometheus: `http://localhost:9090`
+- RabbitMQ Management: porta dinâmica (descubra com `docker compose port rabbitmq 15672`)
+- API: porta dinâmica (descubra com `docker compose port api 8080`)
+- Postgres: porta dinâmica (descubra com `docker compose port postgres 5432`)
 
 ## 6) Descobrir portas dinâmicas do compose
 
