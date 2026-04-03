@@ -47,6 +47,13 @@ jobs:
       - name: Run Tests + Coverage Gate
         run: mvn -B -ntp -e verify -Pci,it
 
+      - name: Debug JaCoCo IT exec
+        if: always()
+        run: |
+          ls -lah target || true
+          ls -lah target/jacoco || true
+          wc -c target/jacoco/jacoco-it.exec || true
+
       - name: Trivy FS Scan (SARIF)
         run: trivy fs --severity CRITICAL --exit-code 0 --no-progress --format sarif --output trivy-fs.sarif .
 
