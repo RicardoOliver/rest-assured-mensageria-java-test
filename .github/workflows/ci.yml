@@ -35,15 +35,18 @@ jobs:
           sudo install -m 0755 trivy /usr/local/bin/trivy
           trivy --version
 
-      - name: Vulnerability Scan (Critical Gate)
-        run: trivy fs --severity CRITICAL --exit-code 1 --no-progress --format sarif --output trivy.sarif .
+      - name: Trivy Scan (SARIF)
+        run: trivy fs --exit-code 0 --no-progress --format sarif --output trivy.sarif .
 
       - name: Upload Trivy SARIF
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        if: ${{ always() && hashFiles('trivy.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy.sarif
 
       - name: Run Tests + Coverage Gate
         run: mvn -B -ntp verify -Pci,it
+
+      - name: Vulnerability Scan (Critical Gate)
+        run: trivy fs --severity CRITICAL --exit-code 1 --no-progress .
 
