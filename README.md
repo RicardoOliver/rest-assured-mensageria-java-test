@@ -110,3 +110,8 @@ k6 run -e BASE_URL=http://localhost:8080 k6/loadtest.js
 
 Detalhamento técnico do fluxo assíncrono, estados esperados e pontos de verificação:
 - [docs/teste-de-mesa.md](docs/teste-de-mesa.md)
+
+## Relatórios no GitHub
+
+- Artifacts (por execução): aba Actions → run → Artifacts
+- Pages (link fixo): Settings → Pages → Source = GitHub Actions, e acessar a URL publicada pelo workflow "pages"

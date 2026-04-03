@@ -54,6 +54,23 @@ jobs:
           ls -lah target/jacoco || true
           wc -c target/jacoco/jacoco-it.exec || true
 
+      - name: Upload Test Reports (Artifacts)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            docker-compose.yml
+            docker-compose.monitoring.yml
+            prometheus/**
+            grafana/**
+            target/site/**
+            target/surefire-reports/**
+            target/failsafe-reports/**
+            target/jacoco/**
+
       - name: Trivy FS Scan (SARIF)
         run: trivy fs --severity CRITICAL --exit-code 0 --no-progress --format sarif --output trivy-fs.sarif .
 
