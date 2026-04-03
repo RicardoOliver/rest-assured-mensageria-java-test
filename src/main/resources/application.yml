@@ -16,8 +16,8 @@ spring:
     name: messaging-api
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:app}
-    username: ${POSTGRES_USER:app}
-    password: ${POSTGRES_PASSWORD:app}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -30,8 +30,8 @@ spring:
   rabbitmq:
     host: ${RABBIT_HOST:localhost}
     port: ${RABBIT_PORT:5672}
-    username: ${RABBIT_USER:guest}
-    password: ${RABBIT_PASSWORD:guest}
+    username: ${RABBIT_USER}
+    password: ${RABBIT_PASSWORD}
     listener:
       simple:
         default-requeue-rejected: false

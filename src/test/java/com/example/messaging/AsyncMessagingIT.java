@@ -308,12 +308,13 @@ class AsyncMessagingIT {
                 .withEnv("POSTGRES_DB", "app")
                 .withEnv("POSTGRES_USER", DB_USER)
                 .withEnv("POSTGRES_PASSWORD", DB_PASSWORD)
+                .withEnv("SERVER_SHUTDOWN", "immediate")
+                .withEnv("SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE", "5s")
                 .withEnv("JAVA_TOOL_OPTIONS", jacocoAgentOpts + " -Xms128m -Xmx512m")
                 .withExposedPorts(8080)
                 .withNetwork(network)
                 .dependsOn(postgres, rabbitmq)
                 .withStartupAttempts(3)
-                .withCreateContainerCmdModifier(cmd -> cmd.getHostConfig().withStopTimeout(30))
                 .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(frame -> printFrame("API", frame));
     }
