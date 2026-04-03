@@ -4,6 +4,8 @@ import static org.hamcrest.Matchers.equalTo;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -282,6 +284,8 @@ class AsyncMessagingIT {
     }
 
     private void waitForRabbitReady() {
+        ensureRabbitTopologyDeclared();
+
         AtomicInteger lastStatusMain = new AtomicInteger(-1);
         AtomicReference<String> lastBodyMain = new AtomicReference<>("");
         AtomicInteger lastStatusDlq = new AtomicInteger(-1);
@@ -294,12 +298,15 @@ class AsyncMessagingIT {
                     .pollInterval(Duration.ofSeconds(1))
                     .until(() -> {
                         try {
+                            String mainQueuePath = "/api/queues/%2F/" + encodePathSegment(RabbitTopologyConfig.EVENTS_QUEUE);
+                            String dlqQueuePath = "/api/queues/%2F/" + encodePathSegment(RabbitTopologyConfig.DLQ_QUEUE);
+
                             var main = RestAssured
                                     .given()
                                     .baseUri(rabbitManagementBaseUrl)
                                     .auth().preemptive().basic("app", "app")
                                     .when()
-                                    .get("/api/queues/%2F/" + RabbitTopologyConfig.EVENTS_QUEUE)
+                                    .get(mainQueuePath)
                                     .andReturn();
                             lastStatusMain.set(main.getStatusCode());
                             lastBodyMain.set(main.getBody() == null ? "" : main.getBody().asString());
@@ -309,7 +316,7 @@ class AsyncMessagingIT {
                                     .baseUri(rabbitManagementBaseUrl)
                                     .auth().preemptive().basic("app", "app")
                                     .when()
-                                    .get("/api/queues/%2F/" + RabbitTopologyConfig.DLQ_QUEUE)
+                                    .get(dlqQueuePath)
                                     .andReturn();
                             lastStatusDlq.set(dlq.getStatusCode());
                             lastBodyDlq.set(dlq.getBody() == null ? "" : dlq.getBody().asString());
@@ -340,6 +347,109 @@ class AsyncMessagingIT {
                     e
             );
         }
+    }
+
+    private void ensureRabbitTopologyDeclared() {
+        putExchange(RabbitTopologyConfig.EVENTS_EXCHANGE);
+        putExchange(RabbitTopologyConfig.DLX_EXCHANGE);
+        putQueue(
+                RabbitTopologyConfig.EVENTS_QUEUE,
+                Map.of(
+                        "x-dead-letter-exchange", RabbitTopologyConfig.DLX_EXCHANGE,
+                        "x-dead-letter-routing-key", RabbitTopologyConfig.DLQ_ROUTING_KEY
+                )
+        );
+        putQueue(RabbitTopologyConfig.DLQ_QUEUE, Map.of());
+        postBindingExchangeToQueue(
+                RabbitTopologyConfig.EVENTS_EXCHANGE,
+                RabbitTopologyConfig.EVENTS_QUEUE,
+                RabbitTopologyConfig.EVENTS_ROUTING_KEY
+        );
+        postBindingExchangeToQueue(
+                RabbitTopologyConfig.DLX_EXCHANGE,
+                RabbitTopologyConfig.DLQ_QUEUE,
+                RabbitTopologyConfig.DLQ_ROUTING_KEY
+        );
+    }
+
+    private void putExchange(String exchangeName) {
+        String path = "/api/exchanges/%2F/" + encodePathSegment(exchangeName);
+        var response = RestAssured
+                .given()
+                .baseUri(rabbitManagementBaseUrl)
+                .auth().preemptive().basic("app", "app")
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "type", "direct",
+                        "durable", true,
+                        "auto_delete", false,
+                        "internal", false,
+                        "arguments", Map.of()
+                ))
+                .when()
+                .put(path)
+                .andReturn();
+
+        int statusCode = response.getStatusCode();
+        if (statusCode == 201 || statusCode == 204) {
+            return;
+        }
+        throw new IllegalStateException("Failed to declare exchange. name=" + exchangeName + " status=" + statusCode + " body=" + response.getBody().asString());
+    }
+
+    private void putQueue(String queueName, Map<String, Object> arguments) {
+        String path = "/api/queues/%2F/" + encodePathSegment(queueName);
+        var response = RestAssured
+                .given()
+                .baseUri(rabbitManagementBaseUrl)
+                .auth().preemptive().basic("app", "app")
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "durable", true,
+                        "auto_delete", false,
+                        "arguments", arguments
+                ))
+                .when()
+                .put(path)
+                .andReturn();
+
+        int statusCode = response.getStatusCode();
+        if (statusCode == 201 || statusCode == 204) {
+            return;
+        }
+        throw new IllegalStateException("Failed to declare queue. name=" + queueName + " status=" + statusCode + " body=" + response.getBody().asString());
+    }
+
+    private void postBindingExchangeToQueue(String exchangeName, String queueName, String routingKey) {
+        String path = "/api/bindings/%2F/e/" + encodePathSegment(exchangeName) + "/q/" + encodePathSegment(queueName);
+        var response = RestAssured
+                .given()
+                .baseUri(rabbitManagementBaseUrl)
+                .auth().preemptive().basic("app", "app")
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "routing_key", routingKey,
+                        "arguments", Map.of()
+                ))
+                .when()
+                .post(path)
+                .andReturn();
+
+        int statusCode = response.getStatusCode();
+        if (statusCode == 201 || statusCode == 204) {
+            return;
+        }
+        String body = response.getBody().asString();
+        if (statusCode == 400 && body != null && body.toLowerCase().contains("exists")) {
+            return;
+        }
+        throw new IllegalStateException(
+                "Failed to declare binding. exchange=" + exchangeName + " queue=" + queueName + " status=" + statusCode + " body=" + body
+        );
+    }
+
+    private static String encodePathSegment(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
     private void waitForApiHealthy() {
