@@ -92,6 +92,12 @@ Parar e remover volumes (reset total):
 docker compose -f docker-compose.yml -f docker-compose.monitoring.yml down -v
 ```
 
+Parar o Docker Engine no WSL (daemon):
+
+```bash
+sudo service docker stop
+```
+
 ## 8) Dicas rápidas
 
 - Ver containers:
