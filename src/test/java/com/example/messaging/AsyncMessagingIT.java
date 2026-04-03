@@ -268,10 +268,10 @@ class AsyncMessagingIT {
             container = new FixedHostPortGenericContainer(apiImage);
         } else {
             Path appJarPath = resolveLocalAppJar();
-            container = new FixedHostPortGenericContainer("eclipse-temurin:17-jre")
-                    .withWorkingDirectory("/app")
-                    .withCopyFileToContainer(MountableFile.forHostPath(appJarPath), "/app/app.jar")
-                    .withCommand("java", "-jar", "/app/app.jar");
+            container = new FixedHostPortGenericContainer("eclipse-temurin:17-jre");
+            container.withWorkingDirectory("/app");
+            container.withCopyFileToContainer(MountableFile.forHostPath(appJarPath), "/app/app.jar");
+            container.withCommand("java", "-jar", "/app/app.jar");
         }
 
         Path agentJarPath = Paths.get(
@@ -293,27 +293,27 @@ class AsyncMessagingIT {
                         + JACOCO_TCP_PORT
                         + ",includes=com.example.*";
 
-        return container
-                .withCopyFileToContainer(MountableFile.forHostPath(agentJarPath), "/jacoco/jacocoagent.jar")
-                .withEnv("RABBIT_HOST", "rabbitmq")
-                .withEnv("RABBIT_PORT", "5672")
-                .withEnv("RABBIT_USER", RABBIT_APP_USER)
-                .withEnv("RABBIT_PASSWORD", RABBIT_APP_PASSWORD)
-                .withEnv("POSTGRES_HOST", "postgres")
-                .withEnv("POSTGRES_PORT", "5432")
-                .withEnv("POSTGRES_DB", "app")
-                .withEnv("POSTGRES_USER", DB_USER)
-                .withEnv("POSTGRES_PASSWORD", DB_PASSWORD)
-                .withEnv("SERVER_SHUTDOWN", "immediate")
-                .withEnv("SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE", "5s")
-                .withEnv("JAVA_TOOL_OPTIONS", jacocoAgentOpts + " -Xms128m -Xmx512m")
-                .withFixedExposedPort(JACOCO_TCP_PORT, JACOCO_TCP_PORT)
-                .withExposedPorts(8080)
-                .withNetwork(network)
-                .dependsOn(postgres, rabbitmq)
-                .withStartupAttempts(3)
-                .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)))
-                .withLogConsumer(frame -> printFrame("API", frame));
+        container.withCopyFileToContainer(MountableFile.forHostPath(agentJarPath), "/jacoco/jacocoagent.jar");
+        container.withEnv("RABBIT_HOST", "rabbitmq");
+        container.withEnv("RABBIT_PORT", "5672");
+        container.withEnv("RABBIT_USER", RABBIT_APP_USER);
+        container.withEnv("RABBIT_PASSWORD", RABBIT_APP_PASSWORD);
+        container.withEnv("POSTGRES_HOST", "postgres");
+        container.withEnv("POSTGRES_PORT", "5432");
+        container.withEnv("POSTGRES_DB", "app");
+        container.withEnv("POSTGRES_USER", DB_USER);
+        container.withEnv("POSTGRES_PASSWORD", DB_PASSWORD);
+        container.withEnv("SERVER_SHUTDOWN", "immediate");
+        container.withEnv("SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE", "5s");
+        container.withEnv("JAVA_TOOL_OPTIONS", jacocoAgentOpts + " -Xms128m -Xmx512m");
+        container.withFixedExposedPort(JACOCO_TCP_PORT, JACOCO_TCP_PORT);
+        container.withExposedPorts(8080);
+        container.withNetwork(network);
+        container.dependsOn(postgres, rabbitmq);
+        container.withStartupAttempts(3);
+        container.waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)));
+        container.withLogConsumer(frame -> printFrame("API", frame));
+        return container;
     }
 
     private static Path resolveLocalAppJar() {
