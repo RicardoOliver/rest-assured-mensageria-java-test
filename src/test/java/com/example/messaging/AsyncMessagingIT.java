@@ -12,18 +12,22 @@ import java.sql.ResultSet;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.awaitility.Awaitility;
 import static org.awaitility.pollinterval.FibonacciPollInterval.fibonacci;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import com.example.messaging.messaging.RabbitTopologyConfig;
 import com.rabbitmq.client.ConnectionFactory;
-import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -89,6 +93,34 @@ class AsyncMessagingIT {
 
                 purgeDlq();
         }
+
+    @AfterAll
+    void dumpJacocoExecFromApi() {
+        try {
+            Files.createDirectories(Paths.get("target", "jacoco"));
+            Path destFile = Paths.get("target", "jacoco", "jacoco-it.exec");
+            Files.deleteIfExists(destFile);
+
+            int port = api.getMappedPort(JACOCO_TCP_PORT);
+            try (Socket socket = new Socket()) {
+                socket.connect(new InetSocketAddress(api.getHost(), port), 5000);
+                socket.setSoTimeout(5000);
+
+                try (InputStream in = socket.getInputStream();
+                     OutputStream out = Files.newOutputStream(destFile)) {
+                    in.transferTo(out);
+                }
+            }
+
+            long size = Files.size(destFile);
+            System.out.println("[JACOCO] tcpserver dump: file=" + destFile + " size=" + size);
+            if (size == 0) {
+                throw new IllegalStateException("JaCoCo exec dump file is empty: " + destFile);
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to dump JaCoCo exec data from API container", e);
+        }
+    }
 
         @Test
         void caminhoFeliz_mensagemPostada_consumida_ePersistida() {
@@ -261,15 +293,15 @@ class AsyncMessagingIT {
 
         private static GenericContainer<?> createApiContainer() {
                 String apiImage = System.getenv(API_IMAGE_ENV);
-                FixedHostPortGenericContainer<?> container;
+                GenericContainer<?> container;
                 if (apiImage != null && !apiImage.isBlank()) {
-                        container = new FixedHostPortGenericContainer(apiImage);
+                        container = new GenericContainer<>(apiImage);
                 } else {
                         Path appJarPath = resolveLocalAppJar();
-                        container = new FixedHostPortGenericContainer("eclipse-temurin:17-jre");
-                        container.withWorkingDirectory("/app");
-                        container.withCopyFileToContainer(MountableFile.forHostPath(appJarPath), "/app/app.jar");
-                        container.withCommand("java", "-jar", "/app/app.jar");
+                        container = new GenericContainer<>("eclipse-temurin:17-jre")
+                                        .withWorkingDirectory("/app")
+                                        .withCopyFileToContainer(MountableFile.forHostPath(appJarPath), "/app/app.jar")
+                                        .withCommand("java", "-jar", "/app/app.jar");
                 }
 
                 Path agentJarPath = Paths.get(
@@ -285,7 +317,7 @@ class AsyncMessagingIT {
                         throw new IllegalStateException("JaCoCo agent jar not found at " + agentJarPath);
                 }
 
-                String jacocoAgentOpts = "-javaagent:/jacoco/jacocoagent.jar=output=tcpserver,address=0.0.0.0,port="
+                String jacocoAgentOpts = "-javaagent:/jacoco/jacocoagent.jar=output=tcpserver,address=*,port="
                                 + JACOCO_TCP_PORT
                                 + ",includes=com.example.*";
 
@@ -302,8 +334,7 @@ class AsyncMessagingIT {
                 container.withEnv("SERVER_SHUTDOWN", "immediate");
                 container.withEnv("SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE", "5s");
                 container.withEnv("JAVA_TOOL_OPTIONS", jacocoAgentOpts + " -Xms128m -Xmx512m");
-                container.withFixedExposedPort(JACOCO_TCP_PORT, JACOCO_TCP_PORT);
-                container.withExposedPorts(8080);
+                container.withExposedPorts(8080, JACOCO_TCP_PORT);
                 container.withNetwork(network);
                 container.dependsOn(postgres, rabbitmq);
                 container.withStartupAttempts(3);

@@ -171,21 +171,6 @@
                             <goal>report</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>dump-it</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>dump</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${skipITs}</skip>
-                            <address>localhost</address>
-                            <port>${jacoco.tcp.port}</port>
-                            <destFile>${project.build.directory}/jacoco/jacoco-it.exec</destFile>
-                            <reset>false</reset>
-                            <append>false</append>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
         </plugins>
