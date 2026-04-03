@@ -12,13 +12,10 @@ import java.sql.ResultSet;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jacoco.core.tools.ExecDumpClient;
 import org.awaitility.Awaitility;
 import static org.awaitility.pollinterval.FibonacciPollInterval.fibonacci;
 import org.junit.jupiter.api.Assertions;
@@ -101,22 +98,17 @@ class AsyncMessagingIT {
             Path destFile = Paths.get("target", "jacoco", "jacoco-it.exec");
             Files.deleteIfExists(destFile);
 
-            int port = api.getMappedPort(JACOCO_TCP_PORT);
-            try (Socket socket = new Socket()) {
-                socket.connect(new InetSocketAddress(api.getHost(), port), 5000);
-                socket.setSoTimeout(5000);
+            ExecDumpClient client = new ExecDumpClient();
+            client.setReset(false);
+            client.setRetryCount(10);
+            client.setRetryDelay(1000);
 
-                try (InputStream in = socket.getInputStream();
-                     OutputStream out = Files.newOutputStream(destFile)) {
-                    in.transferTo(out);
-                }
-            }
+            int port = api.getMappedPort(JACOCO_TCP_PORT);
+            var loader = client.dump(api.getHost(), port);
+            loader.save(destFile.toFile(), false);
 
             long size = Files.size(destFile);
-            System.out.println("[JACOCO] tcpserver dump: file=" + destFile + " size=" + size);
-            if (size == 0) {
-                throw new IllegalStateException("JaCoCo exec dump file is empty: " + destFile);
-            }
+            System.out.println("[JACOCO] dumped exec data: file=" + destFile + " size=" + size);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to dump JaCoCo exec data from API container", e);
         }
