@@ -4,6 +4,8 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -31,6 +33,8 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.MountableFile;
+import org.testcontainers.containers.BindMode;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -44,6 +48,9 @@ class AsyncMessagingIT {
     static final String DEFAULT_API_IMAGE = "messaging-api-it";
     static final String RUN_ID = "it-" + UUID.randomUUID();
     static final org.awaitility.pollinterval.PollInterval DEFAULT_POLL_INTERVAL = fibonacci(10, TimeUnit.MILLISECONDS);
+    static final String JACOCO_VERSION = "0.8.12";
+    static final Path JACOCO_DIR = Paths.get("target", "jacoco").toAbsolutePath();
+    static final Path JACOCO_IT_EXEC = JACOCO_DIR.resolve("jacoco-it.exec");
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -264,7 +271,34 @@ class AsyncMessagingIT {
             container = new GenericContainer<>(new ImageFromDockerfile(DEFAULT_API_IMAGE).withFileFromPath(".", Paths.get(".")));
         }
 
+        Path agentJarPath = Paths.get(
+                System.getProperty("user.home"),
+                ".m2",
+                "repository",
+                "org",
+                "jacoco",
+                "org.jacoco.agent",
+                JACOCO_VERSION,
+                "org.jacoco.agent-" + JACOCO_VERSION + "-runtime.jar"
+        );
+        if (!Files.exists(agentJarPath)) {
+            throw new IllegalStateException("JaCoCo agent jar not found at " + agentJarPath);
+        }
+
+        try {
+            Files.createDirectories(JACOCO_DIR);
+            if (!Files.exists(JACOCO_IT_EXEC)) {
+                Files.createFile(JACOCO_IT_EXEC);
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to prepare JaCoCo output file at " + JACOCO_IT_EXEC, e);
+        }
+
+        String jacocoAgentOpts = "-javaagent:/jacoco/jacocoagent.jar=destfile=/jacoco/jacoco-it.exec,append=true,output=file,dumponexit=true";
+
         return container
+                .withCopyFileToContainer(MountableFile.forHostPath(agentJarPath), "/jacoco/jacocoagent.jar")
+                .withFileSystemBind(JACOCO_DIR.toString(), "/jacoco", BindMode.READ_WRITE)
                 .withEnv("RABBIT_HOST", "rabbitmq")
                 .withEnv("RABBIT_PORT", "5672")
                 .withEnv("RABBIT_USER", RABBIT_APP_USER)
@@ -274,7 +308,7 @@ class AsyncMessagingIT {
                 .withEnv("POSTGRES_DB", "app")
                 .withEnv("POSTGRES_USER", DB_USER)
                 .withEnv("POSTGRES_PASSWORD", DB_PASSWORD)
-                .withEnv("JAVA_TOOL_OPTIONS", "-Xms128m -Xmx512m")
+                .withEnv("JAVA_TOOL_OPTIONS", jacocoAgentOpts + " -Xms128m -Xmx512m")
                 .withExposedPorts(8080)
                 .withNetwork(network)
                 .dependsOn(postgres, rabbitmq)
