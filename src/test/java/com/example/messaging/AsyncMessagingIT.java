@@ -4,7 +4,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import java.io.File;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -18,30 +18,64 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.output.OutputFrame;
+import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AsyncMessagingIT {
-    // Sobe o ambiente real (API + RabbitMQ + Postgres) via docker-compose,
-    // garantindo que o teste valide a integração assíncrona ponta-a-ponta.
+    static Network network = Network.newNetwork();
+
     @Container
-    static DockerComposeContainer<?> environment =
-            new DockerComposeContainer<>(new File("docker-compose.yml"))
-                    .withBuild(true)
-                    .withExposedService("api", 8080, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
-                    .withExposedService("rabbitmq", 15672, Wait.forHttp("/").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(3)))
-                    .withExposedService("postgres", 5432, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
-                    .withLogConsumer("api", frame -> printFrame("API", frame))
-                    .withLogConsumer("api_1", frame -> printFrame("API", frame))
-                    .withLogConsumer("rabbitmq", frame -> printFrame("RABBITMQ", frame))
-                    .withLogConsumer("rabbitmq_1", frame -> printFrame("RABBITMQ", frame))
-                    .withLogConsumer("postgres", frame -> printFrame("POSTGRES", frame))
-                    .withLogConsumer("postgres_1", frame -> printFrame("POSTGRES", frame));
+    static PostgreSQLContainer<?> postgres =
+            new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine"))
+                    .withDatabaseName("app")
+                    .withUsername("app")
+                    .withPassword("app")
+                    .withNetwork(network)
+                    .withNetworkAliases("postgres")
+                    .waitingFor(Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
+                    .withLogConsumer(frame -> printFrame("POSTGRES", frame));
+
+    @Container
+    static GenericContainer<?> rabbitmq =
+            new GenericContainer<>(DockerImageName.parse("rabbitmq:3.13-management"))
+                    .withEnv("RABBITMQ_DEFAULT_USER", "app")
+                    .withEnv("RABBITMQ_DEFAULT_PASS", "app")
+                    .withExposedPorts(5672, 15672)
+                    .withNetwork(network)
+                    .withNetworkAliases("rabbitmq")
+                    .waitingFor(Wait.forHttp("/").forPort(15672).forStatusCode(200).withStartupTimeout(Duration.ofMinutes(3)))
+                    .withLogConsumer(frame -> printFrame("RABBITMQ", frame));
+
+    @Container
+    static GenericContainer<?> api =
+            new GenericContainer<>(
+                    new ImageFromDockerfile("messaging-api-it")
+                            .withFileFromPath(".", Paths.get(".")))
+                    .withEnv("RABBIT_HOST", "rabbitmq")
+                    .withEnv("RABBIT_PORT", "5672")
+                    .withEnv("RABBIT_USER", "app")
+                    .withEnv("RABBIT_PASSWORD", "app")
+                    .withEnv("POSTGRES_HOST", "postgres")
+                    .withEnv("POSTGRES_PORT", "5432")
+                    .withEnv("POSTGRES_DB", "app")
+                    .withEnv("POSTGRES_USER", "app")
+                    .withEnv("POSTGRES_PASSWORD", "app")
+                    .withEnv("JAVA_TOOL_OPTIONS", "-Xms128m -Xmx512m")
+                    .withExposedPorts(8080)
+                    .withNetwork(network)
+                    .dependsOn(postgres, rabbitmq)
+                    .withStartupAttempts(3)
+                    .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)))
+                    .withLogConsumer(frame -> printFrame("API", frame));
 
     private String apiBaseUrl;
     private String rabbitManagementBaseUrl;
@@ -49,19 +83,9 @@ class AsyncMessagingIT {
 
     @BeforeEach
     void resetState() {
-        // Descobre os hosts/ports reais mapeados dinamicamente pelo Compose (ports "0:..."),
-        // evitando conflito de porta em CI e rodando em paralelo com outros jobs.
-        String apiHost = environment.getServiceHost("api", 8080);
-        Integer apiPort = environment.getServicePort("api", 8080);
-        apiBaseUrl = "http://%s:%d".formatted(apiHost, apiPort);
-
-        String rabbitHost = environment.getServiceHost("rabbitmq", 15672);
-        Integer rabbitPort = environment.getServicePort("rabbitmq", 15672);
-        rabbitManagementBaseUrl = "http://%s:%d".formatted(rabbitHost, rabbitPort);
-
-        String postgresHost = environment.getServiceHost("postgres", 5432);
-        Integer postgresPort = environment.getServicePort("postgres", 5432);
-        jdbcUrl = "jdbc:postgresql://%s:%d/app".formatted(postgresHost, postgresPort);
+        apiBaseUrl = "http://%s:%d".formatted(api.getHost(), api.getMappedPort(8080));
+        rabbitManagementBaseUrl = "http://%s:%d".formatted(rabbitmq.getHost(), rabbitmq.getMappedPort(15672));
+        jdbcUrl = postgres.getJdbcUrl();
 
         waitForApiHealthy();
 
