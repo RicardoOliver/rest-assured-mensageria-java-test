@@ -1,6 +1,6 @@
 services:
   rabbitmq-exporter:
-    image: kbudde/rabbitmq-exporter:1.0.0-RC20
+    image: kbudde/rabbitmq-exporter:1.0.0
     environment:
       RABBIT_URL: http://rabbitmq:15672
       RABBIT_USER: app
@@ -47,4 +47,3 @@ services:
       - prometheus
     ports:
       - "3000:3000"
-
