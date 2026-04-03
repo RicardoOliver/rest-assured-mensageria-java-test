@@ -26,13 +26,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.56.1
+
       - name: Vulnerability Scan (Critical Gate)
-        uses: aquasecurity/trivy-action@v0.28.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          severity: CRITICAL
-          exit-code: "1"
+        run: trivy fs --severity CRITICAL --exit-code 1 --no-progress .
 
       - name: Run Tests + Coverage Gate
         run: mvn -B -ntp verify -Pci,it
