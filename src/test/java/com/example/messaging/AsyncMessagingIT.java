@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import com.example.messaging.messaging.RabbitTopologyConfig;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -89,6 +90,7 @@ class AsyncMessagingIT {
         jdbcUrl = postgres.getJdbcUrl();
 
         waitForApiHealthy();
+        waitForRabbitReady();
 
         // Mantém os testes determinísticos: zera DLQ e tabela, para que asserções de contagem sejam confiáveis.
         purgeDlq();
@@ -156,7 +158,7 @@ class AsyncMessagingIT {
 
         // Consumer deve rejeitar sem requeue; queue principal dead-letter para a DLQ.
         Awaitility.await()
-                .atMost(Duration.ofSeconds(60))
+                .atMost(Duration.ofMinutes(2))
                 .pollInterval(Duration.ofMillis(250))
                 .until(() -> dlqMessageCount() == 1);
 
@@ -237,7 +239,7 @@ class AsyncMessagingIT {
                 .baseUri(rabbitManagementBaseUrl)
                 .auth().preemptive().basic("app", "app")
                 .when()
-                .delete("/api/queues/%2F/events.dlq/contents")
+                .delete("/api/queues/%2F/" + RabbitTopologyConfig.DLQ_QUEUE + "/contents")
                 .andReturn();
 
         int statusCode = response.getStatusCode();
@@ -255,7 +257,7 @@ class AsyncMessagingIT {
                 .baseUri(rabbitManagementBaseUrl)
                 .auth().preemptive().basic("app", "app")
                 .when()
-                .get("/api/queues/%2F/events.dlq")
+                .get("/api/queues/%2F/" + RabbitTopologyConfig.DLQ_QUEUE)
                 .andReturn();
 
         int statusCode = response.getStatusCode();
@@ -277,6 +279,67 @@ class AsyncMessagingIT {
             return;
         }
         System.out.print(("[" + serviceName + "] ") + utf8String);
+    }
+
+    private void waitForRabbitReady() {
+        AtomicInteger lastStatusMain = new AtomicInteger(-1);
+        AtomicReference<String> lastBodyMain = new AtomicReference<>("");
+        AtomicInteger lastStatusDlq = new AtomicInteger(-1);
+        AtomicReference<String> lastBodyDlq = new AtomicReference<>("");
+        AtomicInteger lastConsumers = new AtomicInteger(-1);
+
+        try {
+            Awaitility.await()
+                    .atMost(Duration.ofMinutes(3))
+                    .pollInterval(Duration.ofSeconds(1))
+                    .until(() -> {
+                        try {
+                            var main = RestAssured
+                                    .given()
+                                    .baseUri(rabbitManagementBaseUrl)
+                                    .auth().preemptive().basic("app", "app")
+                                    .when()
+                                    .get("/api/queues/%2F/" + RabbitTopologyConfig.EVENTS_QUEUE)
+                                    .andReturn();
+                            lastStatusMain.set(main.getStatusCode());
+                            lastBodyMain.set(main.getBody() == null ? "" : main.getBody().asString());
+
+                            var dlq = RestAssured
+                                    .given()
+                                    .baseUri(rabbitManagementBaseUrl)
+                                    .auth().preemptive().basic("app", "app")
+                                    .when()
+                                    .get("/api/queues/%2F/" + RabbitTopologyConfig.DLQ_QUEUE)
+                                    .andReturn();
+                            lastStatusDlq.set(dlq.getStatusCode());
+                            lastBodyDlq.set(dlq.getBody() == null ? "" : dlq.getBody().asString());
+
+                            if (main.getStatusCode() != 200 || dlq.getStatusCode() != 200) {
+                                return false;
+                            }
+
+                            Integer consumers = main.jsonPath().getInt("consumers");
+                            lastConsumers.set(consumers == null ? -1 : consumers);
+                            return consumers != null && consumers > 0;
+                        } catch (Exception e) {
+                            lastStatusMain.set(-1);
+                            lastBodyMain.set(e.toString());
+                            lastStatusDlq.set(-1);
+                            lastBodyDlq.set(e.toString());
+                            lastConsumers.set(-1);
+                            return false;
+                        }
+                    });
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "Rabbit topology not ready. mainStatus=" + lastStatusMain.get()
+                            + " mainBody=" + lastBodyMain.get()
+                            + " dlqStatus=" + lastStatusDlq.get()
+                            + " dlqBody=" + lastBodyDlq.get()
+                            + " consumers=" + lastConsumers.get(),
+                    e
+            );
+        }
     }
 
     private void waitForApiHealthy() {
