@@ -41,7 +41,10 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
     depends_on:
-      - rabbitmq
-      - postgres
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: on-failure
     ports:
       - "0:8080"
