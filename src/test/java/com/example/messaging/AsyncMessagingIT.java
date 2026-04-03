@@ -313,6 +313,7 @@ class AsyncMessagingIT {
                 .withNetwork(network)
                 .dependsOn(postgres, rabbitmq)
                 .withStartupAttempts(3)
+                .withCreateContainerCmdModifier(cmd -> cmd.getHostConfig().withStopTimeout(30))
                 .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(frame -> printFrame("API", frame));
     }
