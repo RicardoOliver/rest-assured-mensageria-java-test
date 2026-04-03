@@ -21,10 +21,8 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - name: Docker Compose (for Testcontainers Local Compose)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
+      - name: Ensure Docker available
+        run: docker version
 
       - name: Install Trivy
         run: |

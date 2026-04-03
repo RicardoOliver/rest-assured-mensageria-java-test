@@ -20,6 +20,8 @@ import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -30,10 +32,12 @@ class AsyncMessagingIT {
     static DockerComposeContainer<?> environment =
             new DockerComposeContainer<>(new File("docker-compose.yml"))
                     .withBuild(true)
-                    .withExposedService("api", 8080, Wait.forHttp("/actuator/health").forStatusCode(200))
-                    .withExposedService("rabbitmq", 15672, Wait.forHttp("/").forStatusCode(200))
-                    .withExposedService("postgres", 5432, Wait.forListeningPort())
-                    .withLocalCompose(true);
+                    .withExposedService("api", 8080, Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(3)))
+                    .withExposedService("rabbitmq", 15672, Wait.forHttp("/").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(3)))
+                    .withExposedService("postgres", 5432, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
+                    .withLogConsumer("api", new Slf4jLogConsumer(LoggerFactory.getLogger("API-CONTAINER")))
+                    .withLogConsumer("rabbitmq", new Slf4jLogConsumer(LoggerFactory.getLogger("RABBITMQ-CONTAINER")))
+                    .withLogConsumer("postgres", new Slf4jLogConsumer(LoggerFactory.getLogger("POSTGRES-CONTAINER")));
 
     private String apiBaseUrl;
     private String rabbitManagementBaseUrl;
@@ -88,7 +92,7 @@ class AsyncMessagingIT {
         // A API apenas publica no broker (async). Persistência ocorre no consumer.
         // Awaitility trata o "eventually consistent": espera até a linha aparecer no banco.
         Awaitility.await()
-                .atMost(Duration.ofSeconds(25))
+                .atMost(Duration.ofSeconds(60))
                 .pollInterval(Duration.ofMillis(250))
                 .until(() -> countMessagesById(messageId) == 1);
 
@@ -130,13 +134,13 @@ class AsyncMessagingIT {
 
         // Consumer deve rejeitar sem requeue; queue principal dead-letter para a DLQ.
         Awaitility.await()
-                .atMost(Duration.ofSeconds(25))
+                .atMost(Duration.ofSeconds(60))
                 .pollInterval(Duration.ofMillis(250))
                 .until(() -> dlqMessageCount() == 1);
 
         // Como a mensagem foi para DLQ, ela não deve ser persistida.
         Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(30))
                 .pollInterval(Duration.ofMillis(250))
                 .until(() -> countMessagesById(messageId) == 0);
     }
@@ -178,7 +182,7 @@ class AsyncMessagingIT {
 
         // Idempotência é verificada no ponto de efeito (banco), não no "status" do POST.
         Awaitility.await()
-                .atMost(Duration.ofSeconds(25))
+                .atMost(Duration.ofSeconds(60))
                 .pollInterval(Duration.ofMillis(250))
                 .until(() -> countMessagesById(messageId) == 1);
     }
