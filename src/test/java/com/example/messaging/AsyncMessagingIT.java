@@ -1,12 +1,9 @@
 package com.example.messaging;
 
-import static org.hamcrest.Matchers.equalTo;
-
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,14 +11,17 @@ import java.sql.ResultSet;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.awaitility.Awaitility;
+import static org.awaitility.pollinterval.FibonacciPollInterval.fibonacci;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import com.example.messaging.messaging.RabbitTopologyConfig;
+import com.rabbitmq.client.ConnectionFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -38,13 +38,19 @@ class AsyncMessagingIT {
     static Network network = Network.newNetwork();
     static final String RABBIT_APP_USER = "app";
     static final String RABBIT_APP_PASSWORD = "app";
+    static final String DB_USER = "app";
+    static final String DB_PASSWORD = "app";
+    static final String API_IMAGE_ENV = "API_IMAGE";
+    static final String DEFAULT_API_IMAGE = "messaging-api-it";
+    static final String RUN_ID = "it-" + UUID.randomUUID();
+    static final org.awaitility.pollinterval.PollInterval DEFAULT_POLL_INTERVAL = fibonacci(10, TimeUnit.MILLISECONDS);
 
     @Container
     static PostgreSQLContainer<?> postgres =
             new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine"))
                     .withDatabaseName("app")
-                    .withUsername("app")
-                    .withPassword("app")
+                    .withUsername(DB_USER)
+                    .withPassword(DB_PASSWORD)
                     .withNetwork(network)
                     .withNetworkAliases("postgres")
                     .waitingFor(Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
@@ -62,52 +68,25 @@ class AsyncMessagingIT {
                     .withLogConsumer(frame -> printFrame("RABBITMQ", frame));
 
     @Container
-    static GenericContainer<?> api =
-            new GenericContainer<>(
-                    new ImageFromDockerfile("messaging-api-it")
-                            .withFileFromPath(".", Paths.get(".")))
-                    .withEnv("RABBIT_HOST", "rabbitmq")
-                    .withEnv("RABBIT_PORT", "5672")
-                    .withEnv("RABBIT_USER", RABBIT_APP_USER)
-                    .withEnv("RABBIT_PASSWORD", RABBIT_APP_PASSWORD)
-                    .withEnv("POSTGRES_HOST", "postgres")
-                    .withEnv("POSTGRES_PORT", "5432")
-                    .withEnv("POSTGRES_DB", "app")
-                    .withEnv("POSTGRES_USER", "app")
-                    .withEnv("POSTGRES_PASSWORD", "app")
-                    .withEnv("JAVA_TOOL_OPTIONS", "-Xms128m -Xmx512m")
-                    .withExposedPorts(8080)
-                    .withNetwork(network)
-                    .dependsOn(postgres, rabbitmq)
-                    .withStartupAttempts(3)
-                    .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)))
-                    .withLogConsumer(frame -> printFrame("API", frame));
+    static GenericContainer<?> api = createApiContainer();
 
     private String apiBaseUrl;
-    private String rabbitManagementBaseUrl;
     private String jdbcUrl;
-    private MgmtCredentials rabbitMgmtCredentials;
-
-    private record MgmtCredentials(String user, String password) {}
 
     @BeforeEach
     void resetState() {
         apiBaseUrl = "http://%s:%d".formatted(api.getHost(), api.getMappedPort(8080));
-        rabbitManagementBaseUrl = "http://%s:%d".formatted(rabbitmq.getHost(), rabbitmq.getMappedPort(15672));
         jdbcUrl = postgres.getJdbcUrl();
-        rabbitMgmtCredentials = resolveRabbitMgmtCredentials();
 
         waitForApiHealthy();
         waitForRabbitReady();
 
-        // Mantém os testes determinísticos: zera DLQ e tabela, para que asserções de contagem sejam confiáveis.
         purgeDlq();
-        truncateMessagesTable();
     }
 
     @Test
     void caminhoFeliz_mensagemPostada_consumida_ePersistida() {
-        String messageId = UUID.randomUUID().toString();
+        String messageId = newMessageId("happy");
 
         // Regra de negócio (consumer): payload precisa ter o campo obrigatório "type".
         Map<String, Object> payload = Map.of(
@@ -142,7 +121,7 @@ class AsyncMessagingIT {
 
     @Test
     void erroDeNegocio_mensagemInvalida_rejeitada_eVaiParaDlq() {
-        String messageId = UUID.randomUUID().toString();
+        String messageId = newMessageId("invalid");
 
         // Payload é JSON válido, mas viola regra de negócio (não tem "type").
         Map<String, Object> invalidPayload = Map.of(
@@ -167,19 +146,21 @@ class AsyncMessagingIT {
         // Consumer deve rejeitar sem requeue; queue principal dead-letter para a DLQ.
         Awaitility.await()
                 .atMost(Duration.ofMinutes(2))
-                .pollInterval(Duration.ofMillis(250))
+                .pollDelay(Duration.ofMillis(100))
+                .pollInterval(DEFAULT_POLL_INTERVAL)
                 .until(() -> dlqMessageCount() == 1);
 
         // Como a mensagem foi para DLQ, ela não deve ser persistida.
         Awaitility.await()
                 .atMost(Duration.ofSeconds(30))
-                .pollInterval(Duration.ofMillis(250))
+                .pollDelay(Duration.ofMillis(100))
+                .pollInterval(DEFAULT_POLL_INTERVAL)
                 .until(() -> countMessagesById(messageId) == 0);
     }
 
     @Test
     void idempotencia_mesmoMessageId_duasVezes_persisteApenasUma() {
-        String messageId = "idempotency-" + UUID.randomUUID();
+        String messageId = newMessageId("idempotency");
 
         Map<String, Object> payload = Map.of(
                 "type", "ORDER_CREATED",
@@ -215,21 +196,14 @@ class AsyncMessagingIT {
         // Idempotência é verificada no ponto de efeito (banco), não no "status" do POST.
         Awaitility.await()
                 .atMost(Duration.ofSeconds(60))
-                .pollInterval(Duration.ofMillis(250))
+                .pollDelay(Duration.ofMillis(100))
+                .pollInterval(DEFAULT_POLL_INTERVAL)
                 .until(() -> countMessagesById(messageId) == 1);
-    }
-
-    private void truncateMessagesTable() {
-        try (Connection connection = DriverManager.getConnection(jdbcUrl, "app", "app");
-             PreparedStatement statement = connection.prepareStatement("truncate table messages")) {
-            statement.execute();
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to truncate messages table", e);
-        }
+                
     }
 
     private int countMessagesById(String messageId) {
-        try (Connection connection = DriverManager.getConnection(jdbcUrl, "app", "app");
+        try (Connection connection = openConnection();
              PreparedStatement statement = connection.prepareStatement("select count(*) from messages where message_id = ?")) {
             statement.setString(1, messageId);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -241,44 +215,36 @@ class AsyncMessagingIT {
         }
     }
 
-    private void purgeDlq() {
-        var response = RestAssured
-                .given()
-                .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
-                .when()
-                .delete("/api/queues/%2F/" + RabbitTopologyConfig.DLQ_QUEUE + "/contents")
-                .andReturn();
+    private Connection openConnection() throws Exception {
+        return DriverManager.getConnection(jdbcUrl, DB_USER, DB_PASSWORD);
+    }
 
-        int statusCode = response.getStatusCode();
-        if (statusCode == 204 || statusCode == 404) {
-            return;
+    private String newMessageId(String prefix) {
+        return RUN_ID + "-" + prefix + "-" + UUID.randomUUID();
+    }
+
+    private void purgeDlq() {
+        try (com.rabbitmq.client.Connection connection = openAmqpConnection();
+             com.rabbitmq.client.Channel channel = connection.createChannel()) {
+            if (!queueExists(channel, RabbitTopologyConfig.DLQ_QUEUE)) {
+                return;
+            }
+            channel.queuePurge(RabbitTopologyConfig.DLQ_QUEUE);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to purge DLQ", e);
         }
-        throw new IllegalStateException(
-                "Unexpected status when purging DLQ. status=" + statusCode + " body=" + response.getBody().asString()
-        );
     }
 
     private int dlqMessageCount() {
-        var response = RestAssured
-                .given()
-                .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
-                .when()
-                .get("/api/queues/%2F/" + RabbitTopologyConfig.DLQ_QUEUE)
-                .andReturn();
-
-        int statusCode = response.getStatusCode();
-        if (statusCode == 404) {
-            return 0;
+        try (com.rabbitmq.client.Connection connection = openAmqpConnection();
+             com.rabbitmq.client.Channel channel = connection.createChannel()) {
+            if (!queueExists(channel, RabbitTopologyConfig.DLQ_QUEUE)) {
+                return 0;
+            }
+            return channel.queueDeclarePassive(RabbitTopologyConfig.DLQ_QUEUE).getMessageCount();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to read DLQ message count", e);
         }
-        if (statusCode != 200) {
-            throw new IllegalStateException(
-                    "Unexpected status when reading DLQ. status=" + statusCode + " body=" + response.getBody().asString()
-            );
-        }
-
-        return response.jsonPath().getInt("messages");
     }
 
     private static void printFrame(String serviceName, OutputFrame frame) {
@@ -289,236 +255,139 @@ class AsyncMessagingIT {
         System.out.print(("[" + serviceName + "] ") + utf8String);
     }
 
-    private void waitForRabbitReady() {
-        Awaitility.await()
-                .atMost(Duration.ofMinutes(2))
-                .pollInterval(Duration.ofSeconds(1))
-                .until(() -> {
-                    try {
-                        ensureRabbitTopologyDeclared();
-                        ensureRabbitAppPermissions();
-                        return true;
-                    } catch (Exception e) {
-                        return false;
-                    }
-                });
+    private static GenericContainer<?> createApiContainer() {
+        String apiImage = System.getenv(API_IMAGE_ENV);
+        GenericContainer<?> container;
+        if (apiImage != null && !apiImage.isBlank()) {
+            container = new GenericContainer<>(DockerImageName.parse(apiImage));
+        } else {
+            container = new GenericContainer<>(new ImageFromDockerfile(DEFAULT_API_IMAGE).withFileFromPath(".", Paths.get(".")));
+        }
 
-        AtomicInteger lastStatusMain = new AtomicInteger(-1);
-        AtomicReference<String> lastBodyMain = new AtomicReference<>("");
-        AtomicInteger lastStatusDlq = new AtomicInteger(-1);
-        AtomicReference<String> lastBodyDlq = new AtomicReference<>("");
+        return container
+                .withEnv("RABBIT_HOST", "rabbitmq")
+                .withEnv("RABBIT_PORT", "5672")
+                .withEnv("RABBIT_USER", RABBIT_APP_USER)
+                .withEnv("RABBIT_PASSWORD", RABBIT_APP_PASSWORD)
+                .withEnv("POSTGRES_HOST", "postgres")
+                .withEnv("POSTGRES_PORT", "5432")
+                .withEnv("POSTGRES_DB", "app")
+                .withEnv("POSTGRES_USER", DB_USER)
+                .withEnv("POSTGRES_PASSWORD", DB_PASSWORD)
+                .withEnv("JAVA_TOOL_OPTIONS", "-Xms128m -Xmx512m")
+                .withExposedPorts(8080)
+                .withNetwork(network)
+                .dependsOn(postgres, rabbitmq)
+                .withStartupAttempts(3)
+                .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)))
+                .withLogConsumer(frame -> printFrame("API", frame));
+    }
+
+    private void waitForRabbitReady() {
+        ensureRabbitTopologyDeclared();
+        waitForRabbitConsumer();
+    }
+
+    private void waitForRabbitConsumer() {
         AtomicInteger lastConsumers = new AtomicInteger(-1);
+        AtomicReference<String> lastError = new AtomicReference<>("");
 
         try {
             Awaitility.await()
                     .atMost(Duration.ofMinutes(3))
-                    .pollInterval(Duration.ofSeconds(1))
+                    .pollDelay(Duration.ofMillis(100))
+                    .pollInterval(DEFAULT_POLL_INTERVAL)
                     .until(() -> {
                         try {
-                            String mainQueuePath = "/api/queues/%2F/" + encodePathSegment(RabbitTopologyConfig.EVENTS_QUEUE);
-                            String dlqQueuePath = "/api/queues/%2F/" + encodePathSegment(RabbitTopologyConfig.DLQ_QUEUE);
-
-                            var main = RestAssured
-                                    .given()
-                                    .baseUri(rabbitManagementBaseUrl)
-                                    .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
-                                    .when()
-                                    .get(mainQueuePath)
-                                    .andReturn();
-                            lastStatusMain.set(main.getStatusCode());
-                            lastBodyMain.set(main.getBody() == null ? "" : main.getBody().asString());
-
-                            var dlq = RestAssured
-                                    .given()
-                                    .baseUri(rabbitManagementBaseUrl)
-                                    .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
-                                    .when()
-                                    .get(dlqQueuePath)
-                                    .andReturn();
-                            lastStatusDlq.set(dlq.getStatusCode());
-                            lastBodyDlq.set(dlq.getBody() == null ? "" : dlq.getBody().asString());
-
-                            if (main.getStatusCode() != 200 || dlq.getStatusCode() != 200) {
-                                return false;
+                            try (com.rabbitmq.client.Connection connection = openAmqpConnection();
+                                 com.rabbitmq.client.Channel channel = connection.createChannel()) {
+                                if (!queueExists(channel, RabbitTopologyConfig.EVENTS_QUEUE)) {
+                                    lastConsumers.set(0);
+                                    return false;
+                                }
+                                int consumers = channel.queueDeclarePassive(RabbitTopologyConfig.EVENTS_QUEUE).getConsumerCount();
+                                lastConsumers.set(consumers);
+                                return consumers > 0;
                             }
-
-                            Integer consumers = main.jsonPath().getInt("consumers");
-                            lastConsumers.set(consumers == null ? -1 : consumers);
-                            return consumers != null && consumers > 0;
                         } catch (Exception e) {
-                            lastStatusMain.set(-1);
-                            lastBodyMain.set(e.toString());
-                            lastStatusDlq.set(-1);
-                            lastBodyDlq.set(e.toString());
+                            lastError.set(e.toString());
                             lastConsumers.set(-1);
                             return false;
                         }
                     });
         } catch (Exception e) {
             throw new IllegalStateException(
-                    "Rabbit topology not ready. mainStatus=" + lastStatusMain.get()
-                            + " mainBody=" + lastBodyMain.get()
-                            + " dlqStatus=" + lastStatusDlq.get()
-                            + " dlqBody=" + lastBodyDlq.get()
-                            + " consumers=" + lastConsumers.get(),
+                    "Rabbit consumer not ready. consumers=" + lastConsumers.get() + " lastError=" + lastError.get(),
                     e
             );
         }
     }
 
     private void ensureRabbitTopologyDeclared() {
-        putExchange(RabbitTopologyConfig.EVENTS_EXCHANGE);
-        putExchange(RabbitTopologyConfig.DLX_EXCHANGE);
-        putQueue(
-                RabbitTopologyConfig.EVENTS_QUEUE,
-                Map.of(
-                        "x-dead-letter-exchange", RabbitTopologyConfig.DLX_EXCHANGE,
-                        "x-dead-letter-routing-key", RabbitTopologyConfig.DLQ_ROUTING_KEY
-                )
-        );
-        putQueue(RabbitTopologyConfig.DLQ_QUEUE, Map.of());
-        postBindingExchangeToQueue(
-                RabbitTopologyConfig.EVENTS_EXCHANGE,
-                RabbitTopologyConfig.EVENTS_QUEUE,
-                RabbitTopologyConfig.EVENTS_ROUTING_KEY
-        );
-        postBindingExchangeToQueue(
-                RabbitTopologyConfig.DLX_EXCHANGE,
-                RabbitTopologyConfig.DLQ_QUEUE,
-                RabbitTopologyConfig.DLQ_ROUTING_KEY
-        );
-    }
-
-    private void putExchange(String exchangeName) {
-        String path = "/api/exchanges/%2F/" + encodePathSegment(exchangeName);
-        var response = RestAssured
-                .given()
-                .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "type", "direct",
-                        "durable", true,
-                        "auto_delete", false,
-                        "internal", false,
-                        "arguments", Map.of()
-                ))
-                .when()
-                .put(path)
-                .andReturn();
-
-        int statusCode = response.getStatusCode();
-        if (statusCode == 201 || statusCode == 204) {
-            return;
-        }
-        throw new IllegalStateException("Failed to declare exchange. name=" + exchangeName + " status=" + statusCode + " body=" + response.getBody().asString());
-    }
-
-    private void putQueue(String queueName, Map<String, Object> arguments) {
-        String path = "/api/queues/%2F/" + encodePathSegment(queueName);
-        var response = RestAssured
-                .given()
-                .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "durable", true,
-                        "auto_delete", false,
-                        "arguments", arguments
-                ))
-                .when()
-                .put(path)
-                .andReturn();
-
-        int statusCode = response.getStatusCode();
-        if (statusCode == 201 || statusCode == 204) {
-            return;
-        }
-        throw new IllegalStateException("Failed to declare queue. name=" + queueName + " status=" + statusCode + " body=" + response.getBody().asString());
-    }
-
-    private void postBindingExchangeToQueue(String exchangeName, String queueName, String routingKey) {
-        String path = "/api/bindings/%2F/e/" + encodePathSegment(exchangeName) + "/q/" + encodePathSegment(queueName);
-        var response = RestAssured
-                .given()
-                .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "routing_key", routingKey,
-                        "arguments", Map.of()
-                ))
-                .when()
-                .post(path)
-                .andReturn();
-
-        int statusCode = response.getStatusCode();
-        if (statusCode == 201 || statusCode == 204) {
-            return;
-        }
-        String body = response.getBody().asString();
-        if (statusCode == 400 && body != null && body.toLowerCase().contains("exists")) {
-            return;
-        }
-        throw new IllegalStateException(
-                "Failed to declare binding. exchange=" + exchangeName + " queue=" + queueName + " status=" + statusCode + " body=" + body
-        );
-    }
-
-    private static String encodePathSegment(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
-    }
-
-    private MgmtCredentials resolveRabbitMgmtCredentials() {
-        MgmtCredentials app = new MgmtCredentials(RABBIT_APP_USER, RABBIT_APP_PASSWORD);
-        if (canCallWhoAmI(app)) {
-            return app;
-        }
-        MgmtCredentials guest = new MgmtCredentials("guest", "guest");
-        if (canCallWhoAmI(guest)) {
-            return guest;
-        }
-        throw new IllegalStateException("Unable to authenticate to RabbitMQ Management API with app/app or guest/guest");
-    }
-
-    private boolean canCallWhoAmI(MgmtCredentials credentials) {
+        AtomicReference<String> lastError = new AtomicReference<>("");
         try {
-            var response = RestAssured
-                    .given()
-                    .baseUri(rabbitManagementBaseUrl)
-                    .auth().preemptive().basic(credentials.user(), credentials.password())
-                    .when()
-                    .get("/api/whoami")
-                    .andReturn();
-            return response.getStatusCode() == 200;
+            Awaitility.await()
+                    .atMost(Duration.ofMinutes(2))
+                    .pollDelay(Duration.ofMillis(100))
+                    .pollInterval(DEFAULT_POLL_INTERVAL)
+                    .until(() -> {
+                        try (com.rabbitmq.client.Connection connection = openAmqpConnection();
+                             com.rabbitmq.client.Channel channel = connection.createChannel()) {
+                            channel.exchangeDeclare(RabbitTopologyConfig.EVENTS_EXCHANGE, "direct", true);
+                            channel.exchangeDeclare(RabbitTopologyConfig.DLX_EXCHANGE, "direct", true);
+
+                            channel.queueDeclare(
+                                    RabbitTopologyConfig.EVENTS_QUEUE,
+                                    true,
+                                    false,
+                                    false,
+                                    Map.of(
+                                            "x-dead-letter-exchange", RabbitTopologyConfig.DLX_EXCHANGE,
+                                            "x-dead-letter-routing-key", RabbitTopologyConfig.DLQ_ROUTING_KEY
+                                    )
+                            );
+                            channel.queueDeclare(RabbitTopologyConfig.DLQ_QUEUE, true, false, false, Map.of());
+
+                            channel.queueBind(
+                                    RabbitTopologyConfig.EVENTS_QUEUE,
+                                    RabbitTopologyConfig.EVENTS_EXCHANGE,
+                                    RabbitTopologyConfig.EVENTS_ROUTING_KEY
+                            );
+                            channel.queueBind(
+                                    RabbitTopologyConfig.DLQ_QUEUE,
+                                    RabbitTopologyConfig.DLX_EXCHANGE,
+                                    RabbitTopologyConfig.DLQ_ROUTING_KEY
+                            );
+                            return true;
+                        } catch (Exception e) {
+                            lastError.set(e.toString());
+                            return false;
+                        }
+                    });
+        } catch (Exception e) {
+            throw new IllegalStateException("Rabbit topology not ready to declare via AMQP. lastError=" + lastError.get(), e);
+        }
+    }
+
+    private com.rabbitmq.client.Connection openAmqpConnection() throws Exception {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost(rabbitmq.getHost());
+        factory.setPort(rabbitmq.getMappedPort(5672));
+        factory.setUsername(RABBIT_APP_USER);
+        factory.setPassword(RABBIT_APP_PASSWORD);
+        factory.setVirtualHost("/");
+        factory.setAutomaticRecoveryEnabled(false);
+        factory.setNetworkRecoveryInterval(1000);
+        return factory.newConnection("it-" + RUN_ID);
+    }
+
+    private boolean queueExists(com.rabbitmq.client.Channel channel, String queueName) {
+        try {
+            channel.queueDeclarePassive(queueName);
+            return true;
         } catch (Exception e) {
             return false;
         }
-    }
-
-    private void ensureRabbitAppPermissions() {
-        String path = "/api/permissions/%2F/" + encodePathSegment(RABBIT_APP_USER);
-        var response = RestAssured
-                .given()
-                .baseUri(rabbitManagementBaseUrl)
-                .auth().preemptive().basic(rabbitMgmtCredentials.user(), rabbitMgmtCredentials.password())
-                .contentType(ContentType.JSON)
-                .body(Map.of(
-                        "configure", ".*",
-                        "write", ".*",
-                        "read", ".*"
-                ))
-                .when()
-                .put(path)
-                .andReturn();
-
-        int statusCode = response.getStatusCode();
-        if (statusCode == 201 || statusCode == 204) {
-            return;
-        }
-        throw new IllegalStateException(
-                "Failed to set permissions for user " + RABBIT_APP_USER + ". status=" + statusCode + " body=" + response.getBody().asString()
-        );
     }
 
     private void waitForApiHealthy() {
@@ -528,7 +397,8 @@ class AsyncMessagingIT {
         try {
             Awaitility.await()
                     .atMost(Duration.ofMinutes(3))
-                    .pollInterval(Duration.ofSeconds(1))
+                    .pollDelay(Duration.ofMillis(100))
+                    .pollInterval(DEFAULT_POLL_INTERVAL)
                     .until(() -> {
                         try {
                             var response = RestAssured
