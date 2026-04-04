@@ -3,17 +3,27 @@ name: ci
 on:
   push:
   pull_request:
+  schedule:
+    # 🌙 Regressão completa (todo dia às 02:00 UTC → 23:00 Brasil)
+    - cron: "0 2 * * *"
+
+    # 🔁 Smoke tests a cada 6 horas
+    - cron: "0 */6 * * *"
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       security-events: write
+
     steps:
+      # 🔽 Checkout do código
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ☕ Setup Java + cache Maven
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -21,9 +31,11 @@ jobs:
           java-version: "17"
           cache: maven
 
+      # 🐳 Garantir Docker
       - name: Ensure Docker available
         run: docker version
 
+      # ⚡ Pre-pull (otimização de tempo)
       - name: Pre-pull Docker images
         run: |
           docker pull rabbitmq:3.13-management
@@ -31,6 +43,26 @@ jobs:
           docker pull maven:3.9.9-eclipse-temurin-17
           docker pull eclipse-temurin:17-jre
 
+      # 🧠 Detectar tipo de execução
+      - name: Define Test Type
+        id: test_type
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Schedule: ${{ github.event.schedule }}"
+
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            if [[ "${{ github.event.schedule }}" == "0 2 * * *" ]]; then
+              echo "type=regression" >> $GITHUB_OUTPUT
+            else
+              echo "type=smoke" >> $GITHUB_OUTPUT
+            fi
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "type=pr" >> $GITHUB_OUTPUT
+          else
+            echo "type=full" >> $GITHUB_OUTPUT
+          fi
+
+      # 🔐 Instalar Trivy (segurança)
       - name: Install Trivy
         run: |
           set -euo pipefail
@@ -44,9 +76,30 @@ jobs:
           sudo apt-get install -y trivy
           trivy --version
 
+      # 🧪 Execução inteligente dos testes
       - name: Run Tests + Coverage Gate
-        run: mvn -B -ntp -e verify -Pci,it
+        run: |
+          TYPE="${{ steps.test_type.outputs.type }}"
+          echo "Running test type: $TYPE"
 
+          if [[ "$TYPE" == "regression" ]]; then
+            echo "➡️ Running FULL regression"
+            mvn -B -ntp -e verify -Pci,it
+
+          elif [[ "$TYPE" == "smoke" ]]; then
+            echo "➡️ Running SMOKE tests"
+            mvn -B -ntp -e test -Psmoke
+
+          elif [[ "$TYPE" == "pr" ]]; then
+            echo "➡️ Running PR validation tests"
+            mvn -B -ntp -e test -Pci
+
+          else
+            echo "➡️ Running FULL pipeline"
+            mvn -B -ntp -e verify -Pci,it
+          fi
+
+      # 🔍 Debug cobertura (sempre roda)
       - name: Debug JaCoCo IT exec
         if: always()
         run: |
@@ -54,6 +107,7 @@ jobs:
           ls -lah target/jacoco || true
           wc -c target/jacoco/jacoco-it.exec || true
 
+      # 📦 Upload de relatórios
       - name: Upload Test Reports (Artifacts)
         if: always()
         uses: actions/upload-artifact@v4
@@ -71,6 +125,7 @@ jobs:
             target/failsafe-reports/**
             target/jacoco/**
 
+      # 🔐 Scan de filesystem (Trivy)
       - name: Trivy FS Scan (SARIF)
         run: trivy fs --severity CRITICAL --exit-code 0 --no-progress --format sarif --output trivy-fs.sarif .
 
@@ -81,10 +136,12 @@ jobs:
           sarif_file: trivy-fs.sarif
           category: trivy-fs
 
+      # 🐳 Build da imagem
       - name: Docker Build (app image)
         run: docker build -t app:${{ github.sha }} .
 
-      - name: Trivy Scan (SARIF)
+      # 🔐 Scan da imagem (informativo)
+      - name: Trivy Image Scan (Report)
         run: trivy image --severity CRITICAL --exit-code 0 --no-progress --format sarif --output trivy-image.sarif app:${{ github.sha }}
 
       - name: Upload Trivy Image SARIF
@@ -94,6 +151,6 @@ jobs:
           sarif_file: trivy-image.sarif
           category: trivy-image
 
+      # 🚨 Gate de segurança (bloqueia pipeline)
       - name: Vulnerability Scan (Critical Gate)
         run: trivy image --severity CRITICAL --exit-code 1 --no-progress app:${{ github.sha }}
-
