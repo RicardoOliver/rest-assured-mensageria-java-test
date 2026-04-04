@@ -117,3 +117,16 @@ Detalhamento técnico do fluxo assíncrono, estados esperados e pontos de verifi
 
 - Artifacts (por execução): aba Actions → run → Artifacts
 - Pages (link fixo): Settings → Pages → Source = GitHub Actions, e acessar a URL publicada pelo workflow "pages"
+
+## 📊 Estatísticas e Visibilidade
+
+Aqui você pode agrupar os seus contadores e badges para ficarem centralizados e limpos:
+
+<p align="center">
+<img src="https://komarev.com/ghpvc/?username=RicardoOliver&color=ff69b4&style=for-the-badge&label=VISITANTES" alt="Contador de visitantes"/>
+</p>
+
+<p align="center">
+<img src="https://github-readme-stats.vercel.app/api?username=RicardoOliver&show_icons=true&theme=dracula&include_all_commits=true&count_private=true" alt="GitHub Stats" height="180em"/>
+<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=RicardoOliver&layout=compact&langs_count=7&theme=dracula" alt="Top Languages" height="180em"/>
+</p>
