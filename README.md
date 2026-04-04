@@ -133,10 +133,18 @@ Detalhamento técnico do fluxo assíncrono, estados esperados e pontos de verifi
 
 ---
 
-### 🚀 Projeto em Destaque
-- **[Rest-Assured Mensageria Java Test](https://github.com/RicardoOliver/rest-assured-mensageria-java-test):** Testes de API e integração com foco em sistemas de mensageria.
+## 📊 Estatísticas e Visibilidade
 
 <p align="center">
-<img src="https://github-readme-stats.vercel.app/api?username=RicardoOliver&show_icons=true&theme=dracula&include_all_commits=true&count_private=true" alt="GitHub Stats" height="180em"/>
-<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=RicardoOliver&layout=compact&langs_count=7&theme=dracula" alt="Top Languages" height="180em"/>
+  <img src="https://komarev.com/ghpvc/?username=RicardoOliver-mensageria&color=ff69b4&style=for-the-badge&label=VIEWS+PROJETO+MENSAGERIA" alt="Contador de visitantes"/>
 </p>
+
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=RicardoOliver&show_icons=true&theme=dracula&include_all_commits=true&count_private=true" height="170" alt="GitHub Stats"/>
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=RicardoOliver&layout=compact&langs_count=7&theme=dracula" height="170" alt="Top Languages"/>
+</p>
+
+---
+
+### 🚀 Projeto em Destaque
+- **[Rest-Assured Mensageria Java Test](https://github.com/RicardoOliver/rest-assured-mensageria-java-test):** Testes de API e integração com foco em sistemas de mensageria.
