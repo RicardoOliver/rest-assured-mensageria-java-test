@@ -120,11 +120,21 @@ Detalhamento técnico do fluxo assíncrono, estados esperados e pontos de verifi
 
 ## 📊 Estatísticas e Visibilidade
 
-Aqui você pode agrupar os seus contadores e badges para ficarem centralizados e limpos:
+<p align="center">
+  <a href="https://github.com/RicardoOliver/rest-assured-mensageria-java-test">
+    <img src="https://komarev.com/ghpvc/?username=RicardoOliver&color=ff69b4&style=for-the-badge&label=VISITANTES" alt="Contador de visitantes"/>
+  </a>
+</p>
 
 <p align="center">
-<img src="https://komarev.com/ghpvc/?username=RicardoOliver&color=ff69b4&style=for-the-badge&label=VISITANTES" alt="Contador de visitantes"/>
+  <img src="https://github-readme-stats.vercel.app/api?username=RicardoOliver&show_icons=true&theme=dracula&include_all_commits=true&count_private=true" height="170"/>
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=RicardoOliver&layout=compact&langs_count=7&theme=dracula" height="170"/>
 </p>
+
+---
+
+### 🚀 Projeto em Destaque
+- **[Rest-Assured Mensageria Java Test](https://github.com/RicardoOliver/rest-assured-mensageria-java-test):** Testes de API e integração com foco em sistemas de mensageria.
 
 <p align="center">
 <img src="https://github-readme-stats.vercel.app/api?username=RicardoOliver&show_icons=true&theme=dracula&include_all_commits=true&count_private=true" alt="GitHub Stats" height="180em"/>
