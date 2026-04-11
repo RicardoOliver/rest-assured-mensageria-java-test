@@ -67,27 +67,27 @@ jobs:
           sudo apt-get install -y trivy
           trivy --version
 
-      # 🧪 Execução inteligente dos testes (ADICIONADO jacoco:report)
+      # 🧪 Execução inteligente dos testes
       - name: Run Tests + Coverage Gate
         run: |
           TYPE="${{ steps.test_type.outputs.type }}"
           echo "Running test type: $TYPE"
-
+      
           if [[ "$TYPE" == "regression" ]]; then
             echo "➡️ Running FULL regression"
-            mvn -B -ntp -e verify -Pci,it jacoco:report
-
+            mvn -B -ntp -e clean verify -Pci,it jacoco:report
+      
           elif [[ "$TYPE" == "smoke" ]]; then
             echo "➡️ Running SMOKE tests"
-            mvn -B -ntp -e test -Psmoke jacoco:report
-
+            mvn -B -ntp -e clean test -Psmoke jacoco:report
+      
           elif [[ "$TYPE" == "pr" ]]; then
             echo "➡️ Running PR validation tests"
-            mvn -B -ntp -e test -Pci jacoco:report
-
+            mvn -B -ntp -e clean test -Pci jacoco:report
+      
           else
             echo "➡️ Running FULL pipeline"
-            mvn -B -ntp -e verify -Pci,it jacoco:report
+            mvn -B -ntp -e clean verify -Pci,it jacoco:report
           fi
 
       # 🔥 ADICIONADO — validação do JaCoCo
