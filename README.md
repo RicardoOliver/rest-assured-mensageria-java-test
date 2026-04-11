@@ -399,8 +399,15 @@ Desenvolvido com precisão por **[Ricardo Oliver](https://github.com/RicardoOliv
 
 <br/>
 
-[![GitHub Stats](https://github-readme-stats.vercel.app/api?username=RicardoOliver&show_icons=true&theme=github_dark&include_all_commits=true&count_private=true&hide_border=true)](https://github.com/RicardoOliver)
-[![Linguagens](https://github-readme-stats.vercel.app/api/top-langs/?username=RicardoOliver&layout=compact&langs_count=7&theme=github_dark&hide_border=true)](https://github.com/RicardoOliver)
+[![Java](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.x-FF6600?style=flat-square&logo=rabbitmq&logoColor=white)](https://www.rabbitmq.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![k6](https://img.shields.io/badge/k6-load_testing-7D64FF?style=flat-square&logo=k6&logoColor=white)](https://k6.io/)
+[![Prometheus](https://img.shields.io/badge/Prometheus-monitoring-E6522C?style=flat-square&logo=prometheus&logoColor=white)](https://prometheus.io/)
+[![Grafana](https://img.shields.io/badge/Grafana-dashboards-F46800?style=flat-square&logo=grafana&logoColor=white)](https://grafana.com/)
+[![Docker](https://img.shields.io/badge/Docker-Testcontainers-2496ED?style=flat-square&logo=docker&logoColor=white)](https://testcontainers.com/)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/features/actions)
 
 <br/>
 
