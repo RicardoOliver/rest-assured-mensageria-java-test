@@ -28,6 +28,15 @@
         <skipITs>true</skipITs>
 
         <!--
+            ✅ Override do Tomcat gerenciado pelo Spring Boot parent.
+            Fix para:
+              - CVE-2025-24813 (CRITICAL — RCE/info disclosure, fixed em 10.1.35)
+              - CVE-2026-29145 (CRITICAL — CLIENT_CERT auth bypass, fixed em 10.1.53)
+            Manter sempre na versão mais recente do branch 10.1.x.
+        -->
+        <tomcat.version>10.1.54</tomcat.version>
+
+        <!--
             Placeholders para os argLines do JaCoCo.
             São preenchidos pelos goals prepare-agent / prepare-agent-integration.
             Se o profile `it` não estiver ativo, failsafeArgLine fica vazio — sem erro.
