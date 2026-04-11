@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write   # 🔥 necessário para publicar no Pages
       security-events: write
 
     steps:
@@ -99,6 +99,13 @@ jobs:
             mvn -B -ntp -e verify -Pci,it
           fi
 
+      # 📊 🔥 NOVO — preparar JaCoCo para Pages
+      - name: Prepare JaCoCo report for Pages
+        if: always()
+        run: |
+          mkdir -p site/jacoco
+          cp -r target/site/jacoco/* site/jacoco/ || true
+
       # 🔍 Debug cobertura (sempre roda)
       - name: Debug JaCoCo IT exec
         if: always()
@@ -154,3 +161,11 @@ jobs:
       # 🚨 Gate de segurança (bloqueia pipeline)
       - name: Vulnerability Scan (Critical Gate)
         run: trivy image --severity CRITICAL --exit-code 1 --no-progress app:${{ github.sha }}
+
+      # 🚀 🔥 NOVO — Deploy GitHub Pages
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
