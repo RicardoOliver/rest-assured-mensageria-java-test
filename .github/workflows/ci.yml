@@ -125,14 +125,29 @@ jobs:
       - name: 📊 Generate JaCoCo Report
         if: always()
         run: |
-          echo "Gerando relatório JaCoCo..."
-          mvn -B -ntp jacoco:report || echo "⚠️  jacoco:report unit falhou ou sem dados"
+          echo "=== Verificando exec files ==="
+          ls -lah target/jacoco/ 2>/dev/null || echo "⚠️  target/jacoco/ não encontrado"
 
-          # Report de integração (só se existir o exec)
-          if [ -f target/jacoco/jacoco-it.exec ]; then
-            mvn -B -ntp jacoco:report-integration || echo "⚠️  jacoco:report-integration falhou"
+          # Unit report — aponta para o destFile customizado do pom.xml
+          if [ -f target/jacoco/jacoco.exec ]; then
+            echo "✅ jacoco.exec encontrado ($(wc -c < target/jacoco/jacoco.exec) bytes)"
+            mvn -B -ntp jacoco:report \
+              -DdataFile=target/jacoco/jacoco.exec \
+              -DoutputDirectory=target/site/jacoco \
+              || echo "⚠️  jacoco:report unit falhou"
           else
-            echo "ℹ️  jacoco-it.exec não encontrado — pulando IT report"
+            echo "❌ jacoco.exec não encontrado — unit report não gerado"
+          fi
+
+          # Integration report — só tenta se o exec existir
+          if [ -f target/jacoco/jacoco-it.exec ]; then
+            echo "✅ jacoco-it.exec encontrado ($(wc -c < target/jacoco/jacoco-it.exec) bytes)"
+            mvn -B -ntp jacoco:report-integration \
+              -DdataFile=target/jacoco/jacoco-it.exec \
+              -DoutputDirectory=target/site/jacoco-it \
+              || echo "⚠️  jacoco:report-integration falhou"
+          else
+            echo "ℹ️  jacoco-it.exec não encontrado — IT report ignorado"
           fi
 
       # ── Diagnóstico de artefatos ──────────────────────────
@@ -197,14 +212,22 @@ jobs:
         if: always()
         run: |
           mkdir -p site/jacoco
+          mkdir -p site/jacoco-it
           mkdir -p site/surefire
           mkdir -p site/failsafe
 
           if [ -d target/site/jacoco ]; then
             cp -r target/site/jacoco/* site/jacoco/
-            echo "✅ JaCoCo report copiado"
+            echo "✅ JaCoCo unit report copiado"
           else
-            echo "⚠️  JaCoCo report não encontrado — site/jacoco ficará vazio"
+            echo "❌ JaCoCo unit report não encontrado"
+          fi
+
+          if [ -d target/site/jacoco-it ]; then
+            cp -r target/site/jacoco-it/* site/jacoco-it/
+            echo "✅ JaCoCo IT report copiado"
+          else
+            echo "ℹ️  JaCoCo IT report não encontrado (normal sem -Pit)"
           fi
 
           if [ -d target/surefire-reports ]; then
@@ -226,7 +249,8 @@ jobs:
           </head>
           <body>
             <h1>📊 Test Reports</h1>
-            <a href="jacoco/index.html">🔵 JaCoCo Coverage Report</a>
+            <a href="jacoco/index.html">🔵 JaCoCo Coverage — Unit Tests</a>
+            <a href="jacoco-it/index.html">🟣 JaCoCo Coverage — Integration Tests</a>
             <a href="surefire/">🧪 Surefire (Unit Tests)</a>
             <a href="failsafe/">🔗 Failsafe (Integration Tests)</a>
           </body>
