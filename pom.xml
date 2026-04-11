@@ -23,7 +23,6 @@
         <testcontainers.version>1.20.3</testcontainers.version>
         <jacoco.version>0.8.12</jacoco.version>
         <jacoco.tcp.port>36300</jacoco.tcp.port>
-        <tomcat.version>10.1.35</tomcat.version>
         <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
         <skipITs>true</skipITs>
     </properties>
