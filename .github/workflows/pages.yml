@@ -18,10 +18,13 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
+      # 🔽 Checkout do código
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ☕ Setup Java
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -29,21 +32,33 @@ jobs:
           java-version: "17"
           cache: maven
 
+      # 🧪 Gerar testes + JaCoCo
       - name: Generate JaCoCo (unit tests)
         run: mvn -B -ntp test jacoco:report
 
+      # 📦 Montar site para publicação
       - name: Assemble site
         run: |
           rm -rf public
           mkdir -p public
-          cp -R site/* public/
-          if [ -d target/site ]; then cp -R target/site/* public/; fi
-          cp -R docs public/docs
-          cp -R grafana public/grafana
-          cp -R prometheus public/prometheus
-          cp docker-compose.yml public/docker-compose.yml
-          cp docker-compose.monitoring.yml public/docker-compose.monitoring.yml
 
+          # Página principal
+          cp -R site/* public/
+
+          # 🔥 JaCoCo (corrigido)
+          if [ -d target/site/jacoco ]; then
+            mkdir -p public/jacoco
+            cp -R target/site/jacoco/* public/jacoco/
+          fi
+
+          # Outros artefatos (opcional)
+          cp -R docs public/docs || true
+          cp -R grafana public/grafana || true
+          cp -R prometheus public/prometheus || true
+          cp docker-compose.yml public/docker-compose.yml || true
+          cp docker-compose.monitoring.yml public/docker-compose.monitoring.yml || true
+
+      # 📤 Upload para GitHub Pages
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -52,9 +67,13 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - id: deployment
+      # 🚀 Deploy no GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
