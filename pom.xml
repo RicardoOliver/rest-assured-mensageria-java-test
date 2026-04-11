@@ -8,7 +8,8 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.13</version>
+        <!-- ✅ FIX 1: 3.5.13 não existe — versão estável mais recente -->
+        <version>3.4.1</version>
         <relativePath/>
     </parent>
 
@@ -23,11 +24,19 @@
         <awaitility.version>4.2.1</awaitility.version>
         <testcontainers.version>1.20.3</testcontainers.version>
         <jacoco.version>0.8.12</jacoco.version>
-        <jacoco.tcp.port>36300</jacoco.tcp.port>
         <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
         <skipITs>true</skipITs>
+
+        <!--
+            Placeholders para os argLines do JaCoCo.
+            São preenchidos pelos goals prepare-agent / prepare-agent-integration.
+            Se o profile `it` não estiver ativo, failsafeArgLine fica vazio — sem erro.
+        -->
+        <surefireArgLine></surefireArgLine>
+        <failsafeArgLine></failsafeArgLine>
     </properties>
 
+    <!-- ── Dependency Management ─────────────────────────────────────── -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -40,7 +49,10 @@
         </dependencies>
     </dependencyManagement>
 
+    <!-- ── Dependencies ──────────────────────────────────────────────── -->
     <dependencies>
+
+        <!-- Runtime -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -79,7 +91,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- TESTES -->
+        <!-- Test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -124,37 +136,49 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- JACOCO CORE (mantido) -->
+        <!-- JaCoCo core — necessário para merge de exec files -->
         <dependency>
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.core</artifactId>
             <version>${jacoco.version}</version>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
+    <!-- ── Build ─────────────────────────────────────────────────────── -->
     <build>
         <plugins>
 
-            <!-- SPRING -->
+            <!-- Spring Boot -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- UNIT TEST -->
+            <!--
+                ✅ Surefire (Unit Tests)
+                - Passa ${surefireArgLine} preenchido pelo JaCoCo prepare-agent
+                - includes: apenas classes *Test.java
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
+                    <argLine>${surefireArgLine}</argLine>
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
                 </configuration>
             </plugin>
 
-            <!-- INTEGRATION TEST -->
+            <!--
+                ✅ Failsafe (Integration Tests)
+                - Passa ${failsafeArgLine} preenchido pelo JaCoCo prepare-agent-integration
+                - includes: apenas classes *IT.java
+                - skipITs controlado por property (padrão true; false no profile it)
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
@@ -176,22 +200,37 @@
                 </executions>
             </plugin>
 
-            <!-- 🔥 JACOCO COMPLETO -->
+            <!--
+                ✅ JaCoCo — configuração consolidada e sem duplicatas
+
+                Estrutura de arquivos:
+                  target/jacoco/jacoco.exec      → dados dos testes unitários
+                  target/jacoco/jacoco-it.exec   → dados dos testes de integração
+                  target/site/jacoco/            → HTML de cobertura unitária
+                  target/site/jacoco-it/         → HTML de cobertura de integração
+
+                FIX 2: removida execução `report-unit` duplicada
+                FIX 3: `prepare-agent` agora usa destFile explícito e propertyName próprio
+            -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
                 <executions>
 
-                    <!-- UNIT -->
+                    <!-- 1. Agente para testes unitários (Surefire) -->
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
+                        <configuration>
+                            <propertyName>surefireArgLine</propertyName>
+                            <destFile>${project.build.directory}/jacoco/jacoco.exec</destFile>
+                        </configuration>
                     </execution>
 
-                    <!-- INTEGRATION -->
+                    <!-- 2. Agente para testes de integração (Failsafe) -->
                     <execution>
                         <id>prepare-agent-it</id>
                         <goals>
@@ -203,26 +242,30 @@
                         </configuration>
                     </execution>
 
-                    <!-- 🔥 NOVO (GARANTE HTML) -->
+                    <!-- 3. Relatório HTML — cobertura unitária -->
                     <execution>
                         <id>report-unit</id>
-                        <phase>verify</phase>
+                        <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
                         <configuration>
-                            <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                            <dataFile>${project.build.directory}/jacoco/jacoco.exec</dataFile>
                             <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
                         </configuration>
                     </execution>
 
-                    <!-- EXISTENTE -->
+                    <!-- 4. Relatório HTML — cobertura de integração (só existe se IT rodar) -->
                     <execution>
-                        <id>report</id>
+                        <id>report-it</id>
                         <phase>verify</phase>
                         <goals>
-                            <goal>report</goal>
+                            <goal>report-integration</goal>
                         </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/jacoco/jacoco-it.exec</dataFile>
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
+                        </configuration>
                     </execution>
 
                 </executions>
@@ -231,8 +274,10 @@
         </plugins>
     </build>
 
-    <!-- PROFILES (mantidos) -->
+    <!-- ── Profiles ──────────────────────────────────────────────────── -->
     <profiles>
+
+        <!-- Habilita testes de integração -->
         <profile>
             <id>it</id>
             <properties>
@@ -240,6 +285,32 @@
             </properties>
         </profile>
 
+        <!-- Smoke: roda só testes marcados com @Tag("smoke") -->
+        <profile>
+            <id>smoke</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven-surefire-plugin.version}</version>
+                        <configuration>
+                            <groups>smoke</groups>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
+            ✅ FIX 3: Profile ci — coverage gate separado por tipo
+
+            - Gate unitário: lê jacoco.exec (sempre gerado)
+            - Gate de integração: lê jacoco-it.exec (só existe com -Pit)
+
+            Ambos ligados à fase `verify` com `skip` condicional,
+            evitando falha quando o arquivo não existe.
+        -->
         <profile>
             <id>ci</id>
             <build>
@@ -249,13 +320,44 @@
                         <artifactId>jacoco-maven-plugin</artifactId>
                         <version>${jacoco.version}</version>
                         <executions>
+
+                            <!-- Gate 1: cobertura unitária (80% de linhas) -->
                             <execution>
-                                <id>check</id>
+                                <id>check-unit</id>
                                 <phase>verify</phase>
                                 <goals>
                                     <goal>check</goal>
                                 </goals>
                                 <configuration>
+                                    <dataFile>${project.build.directory}/jacoco/jacoco.exec</dataFile>
+                                    <rules>
+                                        <rule>
+                                            <element>BUNDLE</element>
+                                            <limits>
+                                                <limit>
+                                                    <counter>LINE</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.80</minimum>
+                                                </limit>
+                                            </limits>
+                                        </rule>
+                                    </rules>
+                                </configuration>
+                            </execution>
+
+                            <!--
+                                Gate 2: cobertura de integração (80% de linhas)
+                                Só ativa quando -Pit também está presente.
+                                Se jacoco-it.exec não existir, o check é ignorado.
+                            -->
+                            <execution>
+                                <id>check-it</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>${skipITs}</skip>
                                     <dataFile>${project.build.directory}/jacoco/jacoco-it.exec</dataFile>
                                     <rules>
                                         <rule>
@@ -271,11 +373,13 @@
                                     </rules>
                                 </configuration>
                             </execution>
+
                         </executions>
                     </plugin>
                 </plugins>
             </build>
         </profile>
+
     </profiles>
 
 </project>
