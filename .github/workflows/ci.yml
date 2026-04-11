@@ -1,166 +1,405 @@
 name: ci
 
+# ──────────────────────────────────────────────────────────────
+# Triggers
+# ──────────────────────────────────────────────────────────────
 on:
   push:
+    branches: ["**"]
   pull_request:
+    branches: ["**"]
   schedule:
-    - cron: "0 2 * * *"
-    - cron: "0 */6 * * *"
+    - cron: "0 2 * * *"   # regression diária — 02:00 UTC
+    - cron: "0 */6 * * *" # smoke a cada 6h
 
+# ──────────────────────────────────────────────────────────────
+# Variáveis globais
+# ──────────────────────────────────────────────────────────────
+env:
+  JAVA_VERSION: "17"
+  MAVEN_OPTS: "-Xmx2g -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+# ──────────────────────────────────────────────────────────────
+# Jobs
+# ──────────────────────────────────────────────────────────────
 jobs:
-  test:
+
+  # ────────────────────────────────────────────────────────────
+  # 1. Define qual tipo de teste executar
+  # ────────────────────────────────────────────────────────────
+  define-test-type:
+    name: 🎯 Define Test Strategy
     runs-on: ubuntu-latest
+    outputs:
+      type: ${{ steps.test_type.outputs.type }}
+    steps:
+      - name: Define Test Type
+        id: test_type
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Schedule: ${{ github.event.schedule }}"
+          echo "Branch: ${{ github.ref_name }}"
+
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            if [[ "${{ github.event.schedule }}" == "0 2 * * *" ]]; then
+              echo "type=regression" >> $GITHUB_OUTPUT
+              echo "🔁 Strategy: REGRESSION (daily 02:00 UTC)"
+            else
+              echo "type=smoke" >> $GITHUB_OUTPUT
+              echo "💨 Strategy: SMOKE (every 6h)"
+            fi
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "type=pr" >> $GITHUB_OUTPUT
+            echo "🔀 Strategy: PR validation"
+          else
+            echo "type=full" >> $GITHUB_OUTPUT
+            echo "🚀 Strategy: FULL pipeline (push)"
+          fi
+
+  # ────────────────────────────────────────────────────────────
+  # 2. Build + Testes + Cobertura
+  # ────────────────────────────────────────────────────────────
+  test:
+    name: 🧪 Test & Coverage — [${{ needs.define-test-type.outputs.type }}]
+    runs-on: ubuntu-latest
+    needs: define-test-type
 
     permissions:
       contents: write
       security-events: write
 
     steps:
-      - name: Checkout
+      - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: ☕ Setup Java ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
-      - name: Ensure Docker available
+      - name: 🐋 Verify Docker
         run: docker version
 
-      - name: Pre-pull Docker images
+      - name: 🐋 Pre-pull Docker images
         run: |
-          docker pull rabbitmq:3.13-management
-          docker pull postgres:16-alpine
-          docker pull maven:3.9.9-eclipse-temurin-17
-          docker pull eclipse-temurin:17-jre
+          docker pull rabbitmq:3.13-management  &
+          docker pull postgres:16-alpine        &
+          docker pull maven:3.9.9-eclipse-temurin-17 &
+          docker pull eclipse-temurin:17-jre    &
+          wait
+          echo "✅ All images pulled"
 
-      - name: Define Test Type
-        id: test_type
+      # ── Execução inteligente ──────────────────────────────
+      - name: 🏃 Run Tests
+        id: run_tests
         run: |
-          echo "Event: ${{ github.event_name }}"
-          echo "Schedule: ${{ github.event.schedule }}"
+          TYPE="${{ needs.define-test-type.outputs.type }}"
+          echo "▶️  Running test type: $TYPE"
 
-          if [[ "${{ github.event_name }}" == "schedule" ]]; then
-            if [[ "${{ github.event.schedule }}" == "0 2 * * *" ]]; then
-              echo "type=regression" >> $GITHUB_OUTPUT
+          BASE_FLAGS="-B -ntp -e -Dmaven.test.failure.ignore=true"
+
+          case "$TYPE" in
+            regression)
+              echo "➡️ FULL regression + integration tests"
+              mvn $BASE_FLAGS clean verify -Pci,it
+              ;;
+            smoke)
+              echo "➡️ SMOKE tests only"
+              mvn $BASE_FLAGS clean test -Psmoke
+              ;;
+            pr)
+              echo "➡️ PR validation (unit + fast integration)"
+              mvn $BASE_FLAGS clean test -Pci
+              ;;
+            full)
+              echo "➡️ FULL pipeline (unit + integration + verify)"
+              mvn $BASE_FLAGS clean verify -Pci,it
+              ;;
+          esac
+
+      # ── Geração de cobertura ──────────────────────────────
+      - name: 📊 Generate JaCoCo Report
+        if: always()
+        run: |
+          echo "Gerando relatório JaCoCo..."
+          mvn -B -ntp jacoco:report || echo "⚠️  jacoco:report unit falhou ou sem dados"
+
+          # Report de integração (só se existir o exec)
+          if [ -f target/jacoco/jacoco-it.exec ]; then
+            mvn -B -ntp jacoco:report-integration || echo "⚠️  jacoco:report-integration falhou"
+          else
+            echo "ℹ️  jacoco-it.exec não encontrado — pulando IT report"
+          fi
+
+      # ── Diagnóstico de artefatos ──────────────────────────
+      - name: 🔍 Diagnose Build Artifacts
+        if: always()
+        run: |
+          echo "=== target/ ==="
+          ls -lah target/ 2>/dev/null || echo "target/ não encontrado"
+
+          echo "=== target/jacoco/ ==="
+          ls -lah target/jacoco/ 2>/dev/null || echo "target/jacoco/ não encontrado"
+
+          echo "=== target/site/jacoco/ ==="
+          ls -lah target/site/jacoco/ 2>/dev/null || echo "target/site/jacoco/ não encontrado"
+
+          echo "=== Surefire ==="
+          ls -lah target/surefire-reports/ 2>/dev/null || echo "surefire-reports não encontrado"
+
+          echo "=== Failsafe ==="
+          ls -lah target/failsafe-reports/ 2>/dev/null || echo "failsafe-reports não encontrado"
+
+          # Tamanho do .exec para validar se agente gravou dados
+          if [ -f target/jacoco/jacoco.exec ]; then
+            echo "✅ jacoco.exec: $(wc -c < target/jacoco/jacoco.exec) bytes"
+          fi
+          if [ -f target/jacoco/jacoco-it.exec ]; then
+            echo "✅ jacoco-it.exec: $(wc -c < target/jacoco/jacoco-it.exec) bytes"
+          fi
+
+      # ── Validar resultado dos testes ─────────────────────
+      - name: 🚦 Validate Test Results
+        if: always()
+        run: |
+          FAILED=0
+
+          # Verifica falhas no surefire (unit tests)
+          if ls target/surefire-reports/TEST-*.xml 2>/dev/null | head -1 | grep -q .; then
+            FAILURES=$(grep -r 'failures="[^0]"\|errors="[^0]"' target/surefire-reports/ 2>/dev/null | wc -l || echo 0)
+            if [[ "$FAILURES" -gt 0 ]]; then
+              echo "❌ Encontradas $FAILURES falhas nos testes unitários!"
+              FAILED=1
             else
-              echo "type=smoke" >> $GITHUB_OUTPUT
+              echo "✅ Testes unitários: PASSED"
             fi
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "type=pr" >> $GITHUB_OUTPUT
-          else
-            echo "type=full" >> $GITHUB_OUTPUT
           fi
 
-      - name: Install Trivy
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates curl gnupg lsb-release
-          sudo install -m 0755 -d /etc/apt/keyrings
-          curl -fsSL https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /etc/apt/keyrings/trivy.gpg
-          sudo chmod a+r /etc/apt/keyrings/trivy.gpg
-          echo "deb [signed-by=/etc/apt/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list > /dev/null
-          sudo apt-get update
-          sudo apt-get install -y trivy
-          trivy --version
-
-      # 🧪 Execução inteligente dos testes
-      - name: Run Tests + Coverage Gate
-        run: |
-          TYPE="${{ steps.test_type.outputs.type }}"
-          echo "Running test type: $TYPE"
-      
-          if [[ "$TYPE" == "regression" ]]; then
-            echo "➡️ Running FULL regression"
-            mvn -B -ntp -e clean verify -Pci,it jacoco:report
-      
-          elif [[ "$TYPE" == "smoke" ]]; then
-            echo "➡️ Running SMOKE tests"
-            mvn -B -ntp -e clean test -Psmoke jacoco:report
-      
-          elif [[ "$TYPE" == "pr" ]]; then
-            echo "➡️ Running PR validation tests"
-            mvn -B -ntp -e clean test -Pci jacoco:report
-      
-          else
-            echo "➡️ Running FULL pipeline"
-            mvn -B -ntp -e clean verify -Pci,it jacoco:report
+          # Verifica falhas no failsafe (integration tests)
+          if ls target/failsafe-reports/TEST-*.xml 2>/dev/null | head -1 | grep -q .; then
+            IT_FAILURES=$(grep -r 'failures="[^0]"\|errors="[^0]"' target/failsafe-reports/ 2>/dev/null | wc -l || echo 0)
+            if [[ "$IT_FAILURES" -gt 0 ]]; then
+              echo "❌ Encontradas $IT_FAILURES falhas nos testes de integração!"
+              FAILED=1
+            else
+              echo "✅ Testes de integração: PASSED"
+            fi
           fi
 
-      # 🔥 ADICIONADO — validação do JaCoCo
-      - name: Check JaCoCo files
-        if: always()
-        run: |
-          ls -lah target/site || true
-          ls -lah target/site/jacoco || true
+          exit $FAILED
 
-      # 📊 MELHORADO — cópia segura
-      - name: Prepare JaCoCo report for Pages
+      # ── Preparar site para GitHub Pages ──────────────────
+      - name: 📄 Prepare Reports Site
         if: always()
         run: |
+          mkdir -p site/jacoco
+          mkdir -p site/surefire
+          mkdir -p site/failsafe
+
           if [ -d target/site/jacoco ]; then
-            mkdir -p site/jacoco
             cp -r target/site/jacoco/* site/jacoco/
+            echo "✅ JaCoCo report copiado"
           else
-            echo "JaCoCo report not found!"
+            echo "⚠️  JaCoCo report não encontrado — site/jacoco ficará vazio"
           fi
 
-      - name: Debug JaCoCo IT exec
-        if: always()
-        run: |
-          ls -lah target || true
-          ls -lah target/jacoco || true
-          wc -c target/jacoco/jacoco-it.exec || true
+          if [ -d target/surefire-reports ]; then
+            cp -r target/surefire-reports/* site/surefire/ 2>/dev/null || true
+            echo "✅ Surefire reports copiados"
+          fi
 
-      - name: Upload Test Reports (Artifacts)
+          if [ -d target/failsafe-reports ]; then
+            cp -r target/failsafe-reports/* site/failsafe/ 2>/dev/null || true
+            echo "✅ Failsafe reports copiados"
+          fi
+
+          # Gerar índice simples
+          cat > site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="pt-BR">
+          <head><meta charset="UTF-8"><title>Test Reports</title>
+          <style>body{font-family:sans-serif;padding:2rem}a{display:block;margin:.5rem 0;font-size:1.1rem}</style>
+          </head>
+          <body>
+            <h1>📊 Test Reports</h1>
+            <a href="jacoco/index.html">🔵 JaCoCo Coverage Report</a>
+            <a href="surefire/">🧪 Surefire (Unit Tests)</a>
+            <a href="failsafe/">🔗 Failsafe (Integration Tests)</a>
+          </body>
+          </html>
+          EOF
+          echo "✅ index.html gerado"
+
+      # ── Upload de artefatos ───────────────────────────────
+      - name: 📦 Upload Test Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports
+          name: test-reports-${{ needs.define-test-type.outputs.type }}-${{ github.run_number }}
           if-no-files-found: warn
           retention-days: 14
           path: |
-            docker-compose.yml
-            docker-compose.monitoring.yml
-            prometheus/**
-            grafana/**
             target/site/**
             target/surefire-reports/**
             target/failsafe-reports/**
             target/jacoco/**
 
-      - name: Trivy FS Scan (SARIF)
-        run: trivy fs --severity CRITICAL --exit-code 0 --no-progress --format sarif --output trivy-fs.sarif .
+      - name: 📦 Upload Site Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-${{ github.run_number }}
+          if-no-files-found: warn
+          retention-days: 7
+          path: site/
 
-      - name: Upload Trivy FS SARIF
+  # ────────────────────────────────────────────────────────────
+  # 3. Security Scan (Trivy)
+  # ────────────────────────────────────────────────────────────
+  security-scan:
+    name: 🔒 Security Scan (Trivy)
+    runs-on: ubuntu-latest
+    needs: define-test-type
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: 🛡️ Install Trivy
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y ca-certificates curl gnupg lsb-release
+          sudo install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://aquasecurity.github.io/trivy-repo/deb/public.key \
+            | sudo gpg --dearmor -o /etc/apt/keyrings/trivy.gpg
+          sudo chmod a+r /etc/apt/keyrings/trivy.gpg
+          echo "deb [signed-by=/etc/apt/keyrings/trivy.gpg] \
+            https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" \
+            | sudo tee /etc/apt/sources.list.d/trivy.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y trivy
+          trivy --version
+
+      # ── Scan filesystem ───────────────────────────────────
+      - name: 🔍 Trivy FS Scan (SARIF)
+        run: |
+          trivy fs \
+            --severity CRITICAL,HIGH \
+            --exit-code 0 \
+            --no-progress \
+            --format sarif \
+            --output trivy-fs.sarif \
+            .
+          echo "✅ FS scan concluído"
+
+      - name: 📤 Upload Trivy FS SARIF
         if: ${{ always() && hashFiles('trivy-fs.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-fs.sarif
           category: trivy-fs
 
-      - name: Docker Build (app image)
-        run: docker build -t app:${{ github.sha }} .
+      # ── Build da imagem Docker ────────────────────────────
+      - name: 🐋 Docker Build
+        run: |
+          docker build \
+            --label "git.sha=${{ github.sha }}" \
+            --label "git.branch=${{ github.ref_name }}" \
+            -t app:${{ github.sha }} \
+            .
+          echo "✅ Imagem construída: app:${{ github.sha }}"
 
-      - name: Trivy Image Scan (Report)
-        run: trivy image --severity CRITICAL --exit-code 0 --no-progress --format sarif --output trivy-image.sarif app:${{ github.sha }}
+      # ── Scan da imagem ────────────────────────────────────
+      - name: 🔍 Trivy Image Scan (SARIF)
+        run: |
+          trivy image \
+            --severity CRITICAL,HIGH \
+            --exit-code 0 \
+            --no-progress \
+            --format sarif \
+            --output trivy-image.sarif \
+            app:${{ github.sha }}
+          echo "✅ Image scan (SARIF) concluído"
 
-      - name: Upload Trivy Image SARIF
+      - name: 📤 Upload Trivy Image SARIF
         if: ${{ always() && hashFiles('trivy-image.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-image.sarif
           category: trivy-image
 
-      - name: Vulnerability Scan (Critical Gate)
-        run: trivy image --severity CRITICAL --exit-code 1 --no-progress app:${{ github.sha }}
+      # ── Gate de vulnerabilidades críticas ─────────────────
+      - name: 🚨 Vulnerability Gate (CRITICAL — exit 1)
+        run: |
+          trivy image \
+            --severity CRITICAL \
+            --exit-code 1 \
+            --no-progress \
+            app:${{ github.sha }}
 
-      - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main'
+  # ────────────────────────────────────────────────────────────
+  # 4. Deploy para GitHub Pages (só na main)
+  # ────────────────────────────────────────────────────────────
+  deploy-pages:
+    name: 🚀 Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [test, security-scan]
+    if: github.ref == 'refs/heads/main' && always()
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📥 Download Site Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site-${{ github.run_number }}
+          path: ./site
+
+      - name: 🌐 Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
+          commit_message: "📊 Deploy test reports — run #${{ github.run_number }} [${{ github.sha }}]"
+
+  # ────────────────────────────────────────────────────────────
+  # 5. Notificação de status final
+  # ────────────────────────────────────────────────────────────
+  notify:
+    name: 📢 Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [define-test-type, test, security-scan]
+    if: always()
+
+    steps:
+      - name: 📊 Print Summary
+        run: |
+          echo "## 📋 Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🎯 Test Strategy | \`${{ needs.define-test-type.outputs.type }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Test Job | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔒 Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔀 Branch | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔖 SHA | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏃 Run | #${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> Relatório de cobertura disponível em GitHub Pages após deploy na \`main\`." >> $GITHUB_STEP_SUMMARY
