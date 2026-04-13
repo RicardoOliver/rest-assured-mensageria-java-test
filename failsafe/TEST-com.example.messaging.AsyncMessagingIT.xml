@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-failsafe-plugin/xsd/failsafe-test-report.xsd" version="3.0.2" name="com.example.messaging.AsyncMessagingIT" time="26.637" tests="3" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/home/runner/work/rest-assured-mensageria-java-test/rest-assured-mensageria-java-test/target/test-classes:/home/runner/work/rest-assured-mensageria-java-test/rest-assured-mensageria-java-test/target/classes:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-web/3.4.1/spring-boot-starter-web-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter/3.4.1/spring-boot-starter-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot/3.4.1/spring-boot-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/3.4.1/spring-boot-autoconfigure-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-logging/3.4.1/spring-boot-starter-logging-3.4.1.jar:/home/runner/.m2/repository/ch/qos/logback/logback-classic/1.5.12/logback-classic-1.5.12.jar:/home/runner/.m2/repository/ch/qos/logback/logback-core/1.5.12/logback-core-1.5.12.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-to-slf4j/2.24.3/log4j-to-slf4j-2.24.3.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-api/2.24.3/log4j-api-2.24.3.jar:/home/runner/.m2/repository/org/slf4j/jul-to-slf4j/2.0.16/jul-to-slf4j-2.0.16.jar:/home/runner/.m2/repository/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.jar:/home/runner/.m2/repository/org/yaml/snakeyaml/2.3/snakeyaml-2.3.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-json/3.4.1/spring-boot-starter-json-3.4.1.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.18.2/jackson-databind-2.18.2.jar:/home/runner/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.18.2/jackson-datatype-jdk8-2.18.2.jar:/home/runner/.m2/repository/com/fasterxml/jackson/module/jackson-module-parameter-names/2.18.2/jackson-module-parameter-names-2.18.2.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat/3.4.1/spring-boot-starter-tomcat-3.4.1.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/10.1.54/tomcat-embed-core-10.1.54.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-websocket/10.1.54/tomcat-embed-websocket-10.1.54.jar:/home/runner/.m2/repository/org/springframework/spring-web/6.2.1/spring-web-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-beans/6.2.1/spring-beans-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-webmvc/6.2.1/spring-webmvc-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-aop/6.2.1/spring-aop-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-context/6.2.1/spring-context-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-expression/6.2.1/spring-expression-6.2.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-amqp/3.4.1/spring-boot-starter-amqp-3.4.1.jar:/home/runner/.m2/repository/org/springframework/spring-messaging/6.2.1/spring-messaging-6.2.1.jar:/home/runner/.m2/repository/org/springframework/amqp/spring-rabbit/3.2.1/spring-rabbit-3.2.1.jar:/home/runner/.m2/repository/org/springframework/amqp/spring-amqp/3.2.1/spring-amqp-3.2.1.jar:/home/runner/.m2/repository/org/springframework/retry/spring-retry/2.0.11/spring-retry-2.0.11.jar:/home/runner/.m2/repository/com/rabbitmq/amqp-client/5.22.0/amqp-client-5.22.0.jar:/home/runner/.m2/repository/org/springframework/spring-tx/6.2.1/spring-tx-6.2.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-data-jpa/3.4.1/spring-boot-starter-data-jpa-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-jdbc/3.4.1/spring-boot-starter-jdbc-3.4.1.jar:/home/runner/.m2/repository/com/zaxxer/HikariCP/5.1.0/HikariCP-5.1.0.jar:/home/runner/.m2/repository/org/springframework/spring-jdbc/6.2.1/spring-jdbc-6.2.1.jar:/home/runner/.m2/repository/org/hibernate/orm/hibernate-core/6.6.4.Final/hibernate-core-6.6.4.Final.jar:/home/runner/.m2/repository/jakarta/persistence/jakarta.persistence-api/3.1.0/jakarta.persistence-api-3.1.0.jar:/home/runner/.m2/repository/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar:/home/runner/.m2/repository/org/jboss/logging/jboss-logging/3.6.1.Final/jboss-logging-3.6.1.Final.jar:/home/runner/.m2/repository/org/hibernate/common/hibernate-commons-annotations/7.0.3.Final/hibernate-commons-annotations-7.0.3.Final.jar:/home/runner/.m2/repository/io/smallrye/jandex/3.2.0/jandex-3.2.0.jar:/home/runner/.m2/repository/com/fasterxml/classmate/1.7.0/classmate-1.7.0.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy/1.15.11/byte-buddy-1.15.11.jar:/home/runner/.m2/repository/org/glassfish/jaxb/jaxb-runtime/4.0.5/jaxb-runtime-4.0.5.jar:/home/runner/.m2/repository/org/glassfish/jaxb/jaxb-core/4.0.5/jaxb-core-4.0.5.jar:/home/runner/.m2/repository/org/eclipse/angus/angus-activation/2.0.2/angus-activation-2.0.2.jar:/home/runner/.m2/repository/org/glassfish/jaxb/txw2/4.0.5/txw2-4.0.5.jar:/home/runner/.m2/repository/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.jar:/home/runner/.m2/repository/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar:/home/runner/.m2/repository/org/antlr/antlr4-runtime/4.13.0/antlr4-runtime-4.13.0.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-jpa/3.4.1/spring-data-jpa-3.4.1.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-commons/3.4.1/spring-data-commons-3.4.1.jar:/home/runner/.m2/repository/org/springframework/spring-orm/6.2.1/spring-orm-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-aspects/6.2.1/spring-aspects-6.2.1.jar:/home/runner/.m2/repository/org/aspectj/aspectjweaver/1.9.22.1/aspectjweaver-1.9.22.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-validation/3.4.1/spring-boot-starter-validation-3.4.1.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-el/10.1.54/tomcat-embed-el-10.1.54.jar:/home/runner/.m2/repository/org/hibernate/validator/hibernate-validator/8.0.2.Final/hibernate-validator-8.0.2.Final.jar:/home/runner/.m2/repository/jakarta/validation/jakarta.validation-api/3.0.2/jakarta.validation-api-3.0.2.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-actuator/3.4.1/spring-boot-starter-actuator-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator-autoconfigure/3.4.1/spring-boot-actuator-autoconfigure-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator/3.4.1/spring-boot-actuator-3.4.1.jar:/home/runner/.m2/repository/io/micrometer/micrometer-observation/1.14.2/micrometer-observation-1.14.2.jar:/home/runner/.m2/repository/io/micrometer/micrometer-commons/1.14.2/micrometer-commons-1.14.2.jar:/home/runner/.m2/repository/io/micrometer/micrometer-jakarta9/1.14.2/micrometer-jakarta9-1.14.2.jar:/home/runner/.m2/repository/io/micrometer/micrometer-registry-prometheus/1.14.2/micrometer-registry-prometheus-1.14.2.jar:/home/runner/.m2/repository/io/micrometer/micrometer-core/1.14.2/micrometer-core-1.14.2.jar:/home/runner/.m2/repository/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar:/home/runner/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-core/1.3.5/prometheus-metrics-core-1.3.5.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-model/1.3.5/prometheus-metrics-model-1.3.5.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-config/1.3.5/prometheus-metrics-config-1.3.5.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-tracer-common/1.3.5/prometheus-metrics-tracer-common-1.3.5.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-exposition-formats/1.3.5/prometheus-metrics-exposition-formats-1.3.5.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-exposition-textformats/1.3.5/prometheus-metrics-exposition-textformats-1.3.5.jar:/home/runner/.m2/repository/org/flywaydb/flyway-core/10.20.1/flyway-core-10.20.1.jar:/home/runner/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.18.2/jackson-dataformat-toml-2.18.2.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.18.2/jackson-core-2.18.2.jar:/home/runner/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.18.2/jackson-datatype-jsr310-2.18.2.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.18.2/jackson-annotations-2.18.2.jar:/home/runner/.m2/repository/org/flywaydb/flyway-database-postgresql/10.20.1/flyway-database-postgresql-10.20.1.jar:/home/runner/.m2/repository/org/postgresql/postgresql/42.7.4/postgresql-42.7.4.jar:/home/runner/.m2/repository/org/checkerframework/checker-qual/3.42.0/checker-qual-3.42.0.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter/5.11.4/junit-jupiter-5.11.4.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.11.4/junit-jupiter-api-5.11.4.jar:/home/runner/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-commons/1.11.4/junit-platform-commons-1.11.4.jar:/home/runner/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.11.4/junit-jupiter-params-5.11.4.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.11.4/junit-jupiter-engine-5.11.4.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-engine/1.11.4/junit-platform-engine-1.11.4.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-test/3.4.1/spring-boot-starter-test-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test/3.4.1/spring-boot-test-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/3.4.1/spring-boot-test-autoconfigure-3.4.1.jar:/home/runner/.m2/repository/com/jayway/jsonpath/json-path/2.9.0/json-path-2.9.0.jar:/home/runner/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/4.0.2/jakarta.xml.bind-api-4.0.2.jar:/home/runner/.m2/repository/jakarta/activation/jakarta.activation-api/2.1.3/jakarta.activation-api-2.1.3.jar:/home/runner/.m2/repository/net/minidev/json-smart/2.5.1/json-smart-2.5.1.jar:/home/runner/.m2/repository/net/minidev/accessors-smart/2.5.1/accessors-smart-2.5.1.jar:/home/runner/.m2/repository/org/assertj/assertj-core/3.26.3/assertj-core-3.26.3.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest/2.2/hamcrest-2.2.jar:/home/runner/.m2/repository/org/mockito/mockito-core/5.14.2/mockito-core-5.14.2.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy-agent/1.15.11/byte-buddy-agent-1.15.11.jar:/home/runner/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/runner/.m2/repository/org/mockito/mockito-junit-jupiter/5.14.2/mockito-junit-jupiter-5.14.2.jar:/home/runner/.m2/repository/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar:/home/runner/.m2/repository/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar:/home/runner/.m2/repository/org/springframework/spring-core/6.2.1/spring-core-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-jcl/6.2.1/spring-jcl-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-test/6.2.1/spring-test-6.2.1.jar:/home/runner/.m2/repository/org/xmlunit/xmlunit-core/2.10.0/xmlunit-core-2.10.0.jar:/home/runner/.m2/repository/io/rest-assured/rest-assured/5.5.0/rest-assured-5.5.0.jar:/home/runner/.m2/repository/org/apache/groovy/groovy/4.0.24/groovy-4.0.24.jar:/home/runner/.m2/repository/org/apache/groovy/groovy-xml/4.0.24/groovy-xml-4.0.24.jar:/home/runner/.m2/repository/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13.jar:/home/runner/.m2/repository/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar:/home/runner/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar:/home/runner/.m2/repository/commons-codec/commons-codec/1.17.1/commons-codec-1.17.1.jar:/home/runner/.m2/repository/org/apache/httpcomponents/httpmime/4.5.13/httpmime-4.5.13.jar:/home/runner/.m2/repository/org/ccil/cowan/tagsoup/tagsoup/1.2.1/tagsoup-1.2.1.jar:/home/runner/.m2/repository/io/rest-assured/xml-path/5.5.0/xml-path-5.5.0.jar:/home/runner/.m2/repository/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.jar:/home/runner/.m2/repository/io/rest-assured/json-path/5.5.0/json-path-5.5.0.jar:/home/runner/.m2/repository/org/apache/groovy/groovy-json/4.0.24/groovy-json-4.0.24.jar:/home/runner/.m2/repository/io/rest-assured/rest-assured-common/5.5.0/rest-assured-common-5.5.0.jar:/home/runner/.m2/repository/org/awaitility/awaitility/4.2.1/awaitility-4.2.1.jar:/home/runner/.m2/repository/org/testcontainers/junit-jupiter/1.20.3/junit-jupiter-1.20.3.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers/1.20.3/testcontainers-1.20.3.jar:/home/runner/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest-core/2.2/hamcrest-core-2.2.jar:/home/runner/.m2/repository/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar:/home/runner/.m2/repository/org/apache/commons/commons-compress/1.24.0/commons-compress-1.24.0.jar:/home/runner/.m2/repository/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar:/home/runner/.m2/repository/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-api/3.4.0/docker-java-api-3.4.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport-zerodep/3.4.0/docker-java-transport-zerodep-3.4.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport/3.4.0/docker-java-transport-3.4.0.jar:/home/runner/.m2/repository/net/java/dev/jna/jna/5.13.0/jna-5.13.0.jar:/home/runner/.m2/repository/org/testcontainers/postgresql/1.20.3/postgresql-1.20.3.jar:/home/runner/.m2/repository/org/testcontainers/jdbc/1.20.3/jdbc-1.20.3.jar:/home/runner/.m2/repository/org/testcontainers/database-commons/1.20.3/database-commons-1.20.3.jar:/home/runner/.m2/repository/org/jacoco/org.jacoco.core/0.8.12/org.jacoco.core-0.8.12.jar:/home/runner/.m2/repository/org/ow2/asm/asm/9.7/asm-9.7.jar:/home/runner/.m2/repository/org/ow2/asm/asm-commons/9.7/asm-commons-9.7.jar:/home/runner/.m2/repository/org/ow2/asm/asm-tree/9.7/asm-tree-9.7.jar:"/>
+    <property name="java.vm.vendor" value="Eclipse Adoptium"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="user.timezone" value="Etc/UTC"/>
+    <property name="os.name" value="Linux"/>
+    <property name="java.vm.specification.version" value="17"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.boot.library.path" value="/usr/lib/jvm/temurin-17-jdk-amd64/lib"/>
+    <property name="sun.java.command" value="/home/runner/work/rest-assured-mensageria-java-test/rest-assured-mensageria-java-test/target/surefire/surefirebooter-20260413031536476_3.jar /home/runner/work/rest-assured-mensageria-java-test/rest-assured-mensageria-java-test/target/surefire 2026-04-13T03-15-36_430-jvmRun1 surefire-20260413031536476_1tmp surefire_0-20260413031536476_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/home/runner/work/rest-assured-mensageria-java-test/rest-assured-mensageria-java-test/target/test-classes:/home/runner/work/rest-assured-mensageria-java-test/rest-assured-mensageria-java-test/target/classes:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-web/3.4.1/spring-boot-starter-web-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter/3.4.1/spring-boot-starter-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot/3.4.1/spring-boot-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/3.4.1/spring-boot-autoconfigure-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-logging/3.4.1/spring-boot-starter-logging-3.4.1.jar:/home/runner/.m2/repository/ch/qos/logback/logback-classic/1.5.12/logback-classic-1.5.12.jar:/home/runner/.m2/repository/ch/qos/logback/logback-core/1.5.12/logback-core-1.5.12.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-to-slf4j/2.24.3/log4j-to-slf4j-2.24.3.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-api/2.24.3/log4j-api-2.24.3.jar:/home/runner/.m2/repository/org/slf4j/jul-to-slf4j/2.0.16/jul-to-slf4j-2.0.16.jar:/home/runner/.m2/repository/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.jar:/home/runner/.m2/repository/org/yaml/snakeyaml/2.3/snakeyaml-2.3.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-json/3.4.1/spring-boot-starter-json-3.4.1.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.18.2/jackson-databind-2.18.2.jar:/home/runner/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.18.2/jackson-datatype-jdk8-2.18.2.jar:/home/runner/.m2/repository/com/fasterxml/jackson/module/jackson-module-parameter-names/2.18.2/jackson-module-parameter-names-2.18.2.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat/3.4.1/spring-boot-starter-tomcat-3.4.1.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/10.1.54/tomcat-embed-core-10.1.54.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-websocket/10.1.54/tomcat-embed-websocket-10.1.54.jar:/home/runner/.m2/repository/org/springframework/spring-web/6.2.1/spring-web-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-beans/6.2.1/spring-beans-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-webmvc/6.2.1/spring-webmvc-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-aop/6.2.1/spring-aop-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-context/6.2.1/spring-context-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-expression/6.2.1/spring-expression-6.2.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-amqp/3.4.1/spring-boot-starter-amqp-3.4.1.jar:/home/runner/.m2/repository/org/springframework/spring-messaging/6.2.1/spring-messaging-6.2.1.jar:/home/runner/.m2/repository/org/springframework/amqp/spring-rabbit/3.2.1/spring-rabbit-3.2.1.jar:/home/runner/.m2/repository/org/springframework/amqp/spring-amqp/3.2.1/spring-amqp-3.2.1.jar:/home/runner/.m2/repository/org/springframework/retry/spring-retry/2.0.11/spring-retry-2.0.11.jar:/home/runner/.m2/repository/com/rabbitmq/amqp-client/5.22.0/amqp-client-5.22.0.jar:/home/runner/.m2/repository/org/springframework/spring-tx/6.2.1/spring-tx-6.2.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-data-jpa/3.4.1/spring-boot-starter-data-jpa-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-jdbc/3.4.1/spring-boot-starter-jdbc-3.4.1.jar:/home/runner/.m2/repository/com/zaxxer/HikariCP/5.1.0/HikariCP-5.1.0.jar:/home/runner/.m2/repository/org/springframework/spring-jdbc/6.2.1/spring-jdbc-6.2.1.jar:/home/runner/.m2/repository/org/hibernate/orm/hibernate-core/6.6.4.Final/hibernate-core-6.6.4.Final.jar:/home/runner/.m2/repository/jakarta/persistence/jakarta.persistence-api/3.1.0/jakarta.persistence-api-3.1.0.jar:/home/runner/.m2/repository/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar:/home/runner/.m2/repository/org/jboss/logging/jboss-logging/3.6.1.Final/jboss-logging-3.6.1.Final.jar:/home/runner/.m2/repository/org/hibernate/common/hibernate-commons-annotations/7.0.3.Final/hibernate-commons-annotations-7.0.3.Final.jar:/home/runner/.m2/repository/io/smallrye/jandex/3.2.0/jandex-3.2.0.jar:/home/runner/.m2/repository/com/fasterxml/classmate/1.7.0/classmate-1.7.0.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy/1.15.11/byte-buddy-1.15.11.jar:/home/runner/.m2/repository/org/glassfish/jaxb/jaxb-runtime/4.0.5/jaxb-runtime-4.0.5.jar:/home/runner/.m2/repository/org/glassfish/jaxb/jaxb-core/4.0.5/jaxb-core-4.0.5.jar:/home/runner/.m2/repository/org/eclipse/angus/angus-activation/2.0.2/angus-activation-2.0.2.jar:/home/runner/.m2/repository/org/glassfish/jaxb/txw2/4.0.5/txw2-4.0.5.jar:/home/runner/.m2/repository/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.jar:/home/runner/.m2/repository/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar:/home/runner/.m2/repository/org/antlr/antlr4-runtime/4.13.0/antlr4-runtime-4.13.0.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-jpa/3.4.1/spring-data-jpa-3.4.1.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-commons/3.4.1/spring-data-commons-3.4.1.jar:/home/runner/.m2/repository/org/springframework/spring-orm/6.2.1/spring-orm-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-aspects/6.2.1/spring-aspects-6.2.1.jar:/home/runner/.m2/repository/org/aspectj/aspectjweaver/1.9.22.1/aspectjweaver-1.9.22.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-validation/3.4.1/spring-boot-starter-validation-3.4.1.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-el/10.1.54/tomcat-embed-el-10.1.54.jar:/home/runner/.m2/repository/org/hibernate/validator/hibernate-validator/8.0.2.Final/hibernate-validator-8.0.2.Final.jar:/home/runner/.m2/repository/jakarta/validation/jakarta.validation-api/3.0.2/jakarta.validation-api-3.0.2.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-actuator/3.4.1/spring-boot-starter-actuator-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator-autoconfigure/3.4.1/spring-boot-actuator-autoconfigure-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator/3.4.1/spring-boot-actuator-3.4.1.jar:/home/runner/.m2/repository/io/micrometer/micrometer-observation/1.14.2/micrometer-observation-1.14.2.jar:/home/runner/.m2/repository/io/micrometer/micrometer-commons/1.14.2/micrometer-commons-1.14.2.jar:/home/runner/.m2/repository/io/micrometer/micrometer-jakarta9/1.14.2/micrometer-jakarta9-1.14.2.jar:/home/runner/.m2/repository/io/micrometer/micrometer-registry-prometheus/1.14.2/micrometer-registry-prometheus-1.14.2.jar:/home/runner/.m2/repository/io/micrometer/micrometer-core/1.14.2/micrometer-core-1.14.2.jar:/home/runner/.m2/repository/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar:/home/runner/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-core/1.3.5/prometheus-metrics-core-1.3.5.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-model/1.3.5/prometheus-metrics-model-1.3.5.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-config/1.3.5/prometheus-metrics-config-1.3.5.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-tracer-common/1.3.5/prometheus-metrics-tracer-common-1.3.5.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-exposition-formats/1.3.5/prometheus-metrics-exposition-formats-1.3.5.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-exposition-textformats/1.3.5/prometheus-metrics-exposition-textformats-1.3.5.jar:/home/runner/.m2/repository/org/flywaydb/flyway-core/10.20.1/flyway-core-10.20.1.jar:/home/runner/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.18.2/jackson-dataformat-toml-2.18.2.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.18.2/jackson-core-2.18.2.jar:/home/runner/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.18.2/jackson-datatype-jsr310-2.18.2.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.18.2/jackson-annotations-2.18.2.jar:/home/runner/.m2/repository/org/flywaydb/flyway-database-postgresql/10.20.1/flyway-database-postgresql-10.20.1.jar:/home/runner/.m2/repository/org/postgresql/postgresql/42.7.4/postgresql-42.7.4.jar:/home/runner/.m2/repository/org/checkerframework/checker-qual/3.42.0/checker-qual-3.42.0.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter/5.11.4/junit-jupiter-5.11.4.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.11.4/junit-jupiter-api-5.11.4.jar:/home/runner/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-commons/1.11.4/junit-platform-commons-1.11.4.jar:/home/runner/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.11.4/junit-jupiter-params-5.11.4.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.11.4/junit-jupiter-engine-5.11.4.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-engine/1.11.4/junit-platform-engine-1.11.4.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-test/3.4.1/spring-boot-starter-test-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test/3.4.1/spring-boot-test-3.4.1.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/3.4.1/spring-boot-test-autoconfigure-3.4.1.jar:/home/runner/.m2/repository/com/jayway/jsonpath/json-path/2.9.0/json-path-2.9.0.jar:/home/runner/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/4.0.2/jakarta.xml.bind-api-4.0.2.jar:/home/runner/.m2/repository/jakarta/activation/jakarta.activation-api/2.1.3/jakarta.activation-api-2.1.3.jar:/home/runner/.m2/repository/net/minidev/json-smart/2.5.1/json-smart-2.5.1.jar:/home/runner/.m2/repository/net/minidev/accessors-smart/2.5.1/accessors-smart-2.5.1.jar:/home/runner/.m2/repository/org/assertj/assertj-core/3.26.3/assertj-core-3.26.3.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest/2.2/hamcrest-2.2.jar:/home/runner/.m2/repository/org/mockito/mockito-core/5.14.2/mockito-core-5.14.2.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy-agent/1.15.11/byte-buddy-agent-1.15.11.jar:/home/runner/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/runner/.m2/repository/org/mockito/mockito-junit-jupiter/5.14.2/mockito-junit-jupiter-5.14.2.jar:/home/runner/.m2/repository/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar:/home/runner/.m2/repository/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar:/home/runner/.m2/repository/org/springframework/spring-core/6.2.1/spring-core-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-jcl/6.2.1/spring-jcl-6.2.1.jar:/home/runner/.m2/repository/org/springframework/spring-test/6.2.1/spring-test-6.2.1.jar:/home/runner/.m2/repository/org/xmlunit/xmlunit-core/2.10.0/xmlunit-core-2.10.0.jar:/home/runner/.m2/repository/io/rest-assured/rest-assured/5.5.0/rest-assured-5.5.0.jar:/home/runner/.m2/repository/org/apache/groovy/groovy/4.0.24/groovy-4.0.24.jar:/home/runner/.m2/repository/org/apache/groovy/groovy-xml/4.0.24/groovy-xml-4.0.24.jar:/home/runner/.m2/repository/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13.jar:/home/runner/.m2/repository/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar:/home/runner/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar:/home/runner/.m2/repository/commons-codec/commons-codec/1.17.1/commons-codec-1.17.1.jar:/home/runner/.m2/repository/org/apache/httpcomponents/httpmime/4.5.13/httpmime-4.5.13.jar:/home/runner/.m2/repository/org/ccil/cowan/tagsoup/tagsoup/1.2.1/tagsoup-1.2.1.jar:/home/runner/.m2/repository/io/rest-assured/xml-path/5.5.0/xml-path-5.5.0.jar:/home/runner/.m2/repository/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.jar:/home/runner/.m2/repository/io/rest-assured/json-path/5.5.0/json-path-5.5.0.jar:/home/runner/.m2/repository/org/apache/groovy/groovy-json/4.0.24/groovy-json-4.0.24.jar:/home/runner/.m2/repository/io/rest-assured/rest-assured-common/5.5.0/rest-assured-common-5.5.0.jar:/home/runner/.m2/repository/org/awaitility/awaitility/4.2.1/awaitility-4.2.1.jar:/home/runner/.m2/repository/org/testcontainers/junit-jupiter/1.20.3/junit-jupiter-1.20.3.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers/1.20.3/testcontainers-1.20.3.jar:/home/runner/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest-core/2.2/hamcrest-core-2.2.jar:/home/runner/.m2/repository/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar:/home/runner/.m2/repository/org/apache/commons/commons-compress/1.24.0/commons-compress-1.24.0.jar:/home/runner/.m2/repository/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar:/home/runner/.m2/repository/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-api/3.4.0/docker-java-api-3.4.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport-zerodep/3.4.0/docker-java-transport-zerodep-3.4.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport/3.4.0/docker-java-transport-3.4.0.jar:/home/runner/.m2/repository/net/java/dev/jna/jna/5.13.0/jna-5.13.0.jar:/home/runner/.m2/repository/org/testcontainers/postgresql/1.20.3/postgresql-1.20.3.jar:/home/runner/.m2/repository/org/testcontainers/jdbc/1.20.3/jdbc-1.20.3.jar:/home/runner/.m2/repository/org/testcontainers/database-commons/1.20.3/database-commons-1.20.3.jar:/home/runner/.m2/repository/org/jacoco/org.jacoco.core/0.8.12/org.jacoco.core-0.8.12.jar:/home/runner/.m2/repository/org/ow2/asm/asm/9.7/asm-9.7.jar:/home/runner/.m2/repository/org/ow2/asm/asm-commons/9.7/asm-commons-9.7.jar:/home/runner/.m2/repository/org/ow2/asm/asm-tree/9.7/asm-tree-9.7.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/home/runner"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2026-01-20"/>
+    <property name="java.home" value="/usr/lib/jvm/temurin-17-jdk-amd64"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/home/runner/work/rest-assured-mensageria-java-test/rest-assured-mensageria-java-test"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="surefire.real.class.path" value="/home/runner/work/rest-assured-mensageria-java-test/rest-assured-mensageria-java-test/target/surefire/surefirebooter-20260413031536476_3.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="17.0.18+8"/>
+    <property name="user.name" value="runner"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="6.17.0-1010-azure"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="jnidispatch.path" value="/home/runner/.cache/JNA/temp/jna10859803013713733380.tmp"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="jna.platform.library.path" value="/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu:/usr/lib64:/lib64:/usr/lib:/lib:/lib32:/usr/local/lib:/usr/lib/x86_64-linux-gnu/libfakeroot"/>
+    <property name="java.vendor.version" value="Temurin-17.0.18+8"/>
+    <property name="localRepository" value="/home/runner/.m2/repository"/>
+    <property name="jna.loaded" value="true"/>
+    <property name="java.vendor.url.bug" value="https://github.com/adoptium/adoptium-support/issues"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="java.version" value="17.0.18"/>
+    <property name="user.dir" value="/home/runner/work/rest-assured-mensageria-java-test/rest-assured-mensageria-java-test"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="native.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="java.vm.version" value="17.0.18+8"/>
+    <property name="java.specification.maintenance.version" value="1"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="61.0"/>
+    <property name="maven.test.failure.ignore" value="true"/>
+  </properties>
+  <testcase name="caminhoFeliz_mensagemPostada_consumida_ePersistida" classname="com.example.messaging.AsyncMessagingIT" time="2.45">
+    <system-out><![CDATA[03:15:37.228 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+03:15:37.232 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+03:15:37.263 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.20.3
+03:15:37.768 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+03:15:37.776 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+03:15:37.791 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 28.0.4
+  API Version: 1.48
+  Operating System: Ubuntu 24.04.4 LTS
+  Total Memory: 15993 MB
+03:15:37.820 [main] INFO tc.testcontainers/ryuk:0.9.0 -- Pulling docker image: testcontainers/ryuk:0.9.0. Please be patient; this may take some time but only needs to be done once.
+03:15:38.377 [docker-java-stream--1467452668] INFO tc.testcontainers/ryuk:0.9.0 -- Starting to pull image
+03:15:38.396 [docker-java-stream--1467452668] INFO tc.testcontainers/ryuk:0.9.0 -- Pulling image layers:  0 pending,  0 downloaded,  0 extracted, (0 bytes/0 bytes)
+03:15:38.775 [docker-java-stream--1467452668] INFO tc.testcontainers/ryuk:0.9.0 -- Pulling image layers:  2 pending,  1 downloaded,  0 extracted, (116 KB/? MB)
+03:15:38.866 [docker-java-stream--1467452668] INFO tc.testcontainers/ryuk:0.9.0 -- Pulling image layers:  1 pending,  2 downloaded,  0 extracted, (3 MB/? MB)
+03:15:38.902 [docker-java-stream--1467452668] INFO tc.testcontainers/ryuk:0.9.0 -- Pulling image layers:  0 pending,  3 downloaded,  0 extracted, (3 MB/11 MB)
+03:15:38.972 [docker-java-stream--1467452668] INFO tc.testcontainers/ryuk:0.9.0 -- Pulling image layers:  0 pending,  3 downloaded,  1 extracted, (5 MB/11 MB)
+03:15:39.086 [docker-java-stream--1467452668] INFO tc.testcontainers/ryuk:0.9.0 -- Pulling image layers:  0 pending,  3 downloaded,  2 extracted, (6 MB/11 MB)
+03:15:39.121 [docker-java-stream--1467452668] INFO tc.testcontainers/ryuk:0.9.0 -- Pulling image layers:  0 pending,  3 downloaded,  3 extracted, (11 MB/11 MB)
+03:15:39.127 [main] INFO tc.testcontainers/ryuk:0.9.0 -- Image testcontainers/ryuk:0.9.0 pull took PT1.306195887S
+03:15:39.145 [main] INFO tc.testcontainers/ryuk:0.9.0 -- Creating container for image: testcontainers/ryuk:0.9.0
+03:15:39.213 [main] INFO tc.testcontainers/ryuk:0.9.0 -- Container testcontainers/ryuk:0.9.0 is starting: da75e5f8fb5d4cac48b65386efc026f2f2cf5da288c518d55ec87665241431ae
+03:15:39.486 [main] INFO tc.testcontainers/ryuk:0.9.0 -- Container testcontainers/ryuk:0.9.0 started in PT0.34036595S
+03:15:39.490 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+03:15:39.490 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+03:15:39.491 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+03:15:39.491 [main] INFO tc.rabbitmq:3.13-management -- Creating container for image: rabbitmq:3.13-management
+03:15:39.559 [main] INFO tc.rabbitmq:3.13-management -- Container rabbitmq:3.13-management is starting: 14f4da6f1c67ff4ea20b378ec42189994b90b1c9e3a008a54daaec0164f68cbe
+03:15:39.720 [main] INFO org.testcontainers.containers.wait.strategy.HttpWaitStrategy -- /hopeful_fermat: Waiting for 180 seconds for URL: http://localhost:32770/ (where port 32770 maps to container port 15672)
+[RABBITMQ] 2026-04-13 03:15:43.021349+00:00 [notice] <0.44.0> Application syslog exited with reason: stopped
+[RABBITMQ] 2026-04-13 03:15:43.026178+00:00 [notice] <0.254.0> Logging: switching to configured handler(s); following messages may not be visible in this log output
+[RABBITMQ] 2026-04-13 03:15:43.026797+00:00 [notice] <0.254.0> Logging: configured log handlers are now ACTIVE
+[RABBITMQ] 2026-04-13 03:15:43.034581+00:00 [info] <0.254.0> ra: starting system quorum_queues
+[RABBITMQ] 2026-04-13 03:15:43.034666+00:00 [info] <0.254.0> starting Ra system: quorum_queues in directory: /var/lib/rabbitmq/mnesia/rabbit@14f4da6f1c67/quorum/rabbit@14f4da6f1c67
+[RABBITMQ] 2026-04-13 03:15:43.084294+00:00 [info] <0.268.0> ra system 'quorum_queues' running pre init for 0 registered servers
+[RABBITMQ] 2026-04-13 03:15:43.092214+00:00 [info] <0.269.0> ra: meta data store initialised for system quorum_queues. 0 record(s) recovered
+[RABBITMQ] 2026-04-13 03:15:43.107520+00:00 [notice] <0.274.0> WAL: ra_log_wal init, open tbls: ra_log_open_mem_tables, closed tbls: ra_log_closed_mem_tables
+[RABBITMQ] 2026-04-13 03:15:43.119970+00:00 [info] <0.254.0> ra: starting system coordination
+[RABBITMQ] 2026-04-13 03:15:43.120044+00:00 [info] <0.254.0> starting Ra system: coordination in directory: /var/lib/rabbitmq/mnesia/rabbit@14f4da6f1c67/coordination/rabbit@14f4da6f1c67
+[RABBITMQ] 2026-04-13 03:15:43.121908+00:00 [info] <0.282.0> ra system 'coordination' running pre init for 0 registered servers
+[RABBITMQ] 2026-04-13 03:15:43.122863+00:00 [info] <0.283.0> ra: meta data store initialised for system coordination. 0 record(s) recovered
+[RABBITMQ] 2026-04-13 03:15:43.123014+00:00 [notice] <0.288.0> WAL: ra_coordination_log_wal init, open tbls: ra_coordination_log_open_mem_tables, closed tbls: ra_coordination_log_closed_mem_tables
+[RABBITMQ] 2026-04-13 03:15:43.125455+00:00 [info] <0.254.0> ra: starting system coordination
+[RABBITMQ] 2026-04-13 03:15:43.125513+00:00 [info] <0.254.0> starting Ra system: coordination in directory: /var/lib/rabbitmq/mnesia/rabbit@14f4da6f1c67/coordination/rabbit@14f4da6f1c67
+[RABBITMQ] 2026-04-13 03:15:43.212665+00:00 [info] <0.254.0> Waiting for Khepri leader for 30000 ms, 9 retries left
+[RABBITMQ] 2026-04-13 03:15:43.214836+00:00 [notice] <0.292.0> RabbitMQ metadata store: candidate -> leader in term: 1 machine version: 1
+[RABBITMQ] 2026-04-13 03:15:43.227208+00:00 [info] <0.254.0> Khepri leader elected
+[RABBITMQ] 2026-04-13 03:15:43.227289+00:00 [info] <0.254.0> Waiting for Khepri projections for 30000 ms, 9 retries left
+[RABBITMQ] 2026-04-13 03:15:43.462037+00:00 [info] <0.254.0> 
+[RABBITMQ] 2026-04-13 03:15:43.462037+00:00 [info] <0.254.0>  Starting RabbitMQ 3.13.7 on Erlang 26.2.5.16 [jit]
+[RABBITMQ] 2026-04-13 03:15:43.462037+00:00 [info] <0.254.0>  Copyright (c) 2007-2024 Broadcom Inc and/or its subsidiaries
+[RABBITMQ] 2026-04-13 03:15:43.462037+00:00 [info] <0.254.0>  Licensed under the MPL 2.0. Website: https://rabbitmq.com
+[RABBITMQ]   ##  ##      RabbitMQ 3.13.7
+[RABBITMQ]   ##  ##
+[RABBITMQ]   ##########  Copyright (c) 2007-2024 Broadcom Inc and/or its subsidiaries
+[RABBITMQ]   ######  ##
+[RABBITMQ]   ##########  Licensed under the MPL 2.0. Website: https://rabbitmq.com
+[RABBITMQ]   Erlang:      26.2.5.16 [jit]
+[RABBITMQ]   TLS Library: OpenSSL - OpenSSL 3.1.8 11 Feb 2025
+[RABBITMQ]   Release series support status: see https://www.rabbitmq.com/release-information
+[RABBITMQ]   Doc guides:  https://www.rabbitmq.com/docs
+[RABBITMQ]   Support:     https://www.rabbitmq.com/docs/contact
+[RABBITMQ]   Tutorials:   https://www.rabbitmq.com/tutorials
+[RABBITMQ]   Monitoring:  https://www.rabbitmq.com/docs/monitoring
+[RABBITMQ]   Upgrading:   https://www.rabbitmq.com/docs/upgrade
+[RABBITMQ]   Logs: <stdout>
+[RABBITMQ]   Config file(s): /etc/rabbitmq/conf.d/10-defaults.conf
+[RABBITMQ]   Starting broker...2026-04-13 03:15:43.463893+00:00 [info] <0.254.0> 
+[RABBITMQ] 2026-04-13 03:15:43.463893+00:00 [info] <0.254.0>  node           : rabbit@14f4da6f1c67
+[RABBITMQ] 2026-04-13 03:15:43.463893+00:00 [info] <0.254.0>  home dir       : /var/lib/rabbitmq
+[RABBITMQ] 2026-04-13 03:15:43.463893+00:00 [info] <0.254.0>  config file(s) : /etc/rabbitmq/conf.d/10-defaults.conf
+[RABBITMQ] 2026-04-13 03:15:43.463893+00:00 [info] <0.254.0>  cookie hash    : eEz4JmHv/JJQ4SpOKd9WyQ==
+[RABBITMQ] 2026-04-13 03:15:43.463893+00:00 [info] <0.254.0>  log(s)         : <stdout>
+[RABBITMQ] 2026-04-13 03:15:43.463893+00:00 [info] <0.254.0>  data dir       : /var/lib/rabbitmq/mnesia/rabbit@14f4da6f1c67
+[RABBITMQ] 2026-04-13 03:15:43.755960+00:00 [info] <0.254.0> Running boot step pre_boot defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:43.756023+00:00 [info] <0.254.0> Running boot step rabbit_global_counters defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:43.756263+00:00 [info] <0.254.0> Running boot step rabbit_osiris_metrics defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:43.756366+00:00 [info] <0.254.0> Running boot step rabbit_core_metrics defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:43.756762+00:00 [info] <0.254.0> Running boot step rabbit_alarm defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:43.770748+00:00 [info] <0.329.0> Memory high watermark set to 6397 MiB (6708305920 bytes) of 15993 MiB (16770764800 bytes) total
+[RABBITMQ] 2026-04-13 03:15:43.773630+00:00 [info] <0.331.0> Enabling free disk space monitoring (disk free space: 93967081472, total memory: 16770764800)
+[RABBITMQ] 2026-04-13 03:15:43.773696+00:00 [info] <0.331.0> Disk free limit set to 50MB
+[RABBITMQ] 2026-04-13 03:15:43.775842+00:00 [info] <0.254.0> Running boot step code_server_cache defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:43.775927+00:00 [info] <0.254.0> Running boot step file_handle_cache defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:43.782010+00:00 [info] <0.334.0> Limiting to approx 65439 file handles (58893 sockets)
+[RABBITMQ] 2026-04-13 03:15:43.782169+00:00 [info] <0.335.0> FHC read buffering: OFF
+[RABBITMQ] 2026-04-13 03:15:43.782292+00:00 [info] <0.335.0> FHC write buffering: ON
+[RABBITMQ] 2026-04-13 03:15:43.782694+00:00 [info] <0.254.0> Running boot step worker_pool defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:43.782777+00:00 [info] <0.315.0> Will use 4 processes for default worker pool
+[RABBITMQ] 2026-04-13 03:15:43.782831+00:00 [info] <0.315.0> Starting worker pool 'worker_pool' with 4 processes in it
+[RABBITMQ] 2026-04-13 03:15:43.783153+00:00 [info] <0.254.0> Running boot step database defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:43.783569+00:00 [info] <0.254.0> Peer discovery: configured backend: rabbit_peer_discovery_classic_config
+[RABBITMQ] 2026-04-13 03:15:43.784619+00:00 [notice] <0.316.0> Feature flags: attempt to enable `detailed_queues_endpoint`...
+[RABBITMQ] 2026-04-13 03:15:43.855493+00:00 [notice] <0.316.0> Feature flags: `detailed_queues_endpoint` enabled
+[RABBITMQ] 2026-04-13 03:15:43.855610+00:00 [notice] <0.316.0> Feature flags: attempt to enable `quorum_queue_non_voters`...
+[RABBITMQ] 2026-04-13 03:15:43.929031+00:00 [notice] <0.316.0> Feature flags: `quorum_queue_non_voters` enabled
+[RABBITMQ] 2026-04-13 03:15:43.929182+00:00 [notice] <0.316.0> Feature flags: attempt to enable `stream_update_config_command`...
+[RABBITMQ] 2026-04-13 03:15:44.000050+00:00 [notice] <0.316.0> Feature flags: `stream_update_config_command` enabled
+[RABBITMQ] 2026-04-13 03:15:44.000216+00:00 [notice] <0.316.0> Feature flags: attempt to enable `stream_filtering`...
+[RABBITMQ] 2026-04-13 03:15:44.070493+00:00 [notice] <0.316.0> Feature flags: `stream_filtering` enabled
+[RABBITMQ] 2026-04-13 03:15:44.070729+00:00 [notice] <0.316.0> Feature flags: attempt to enable `stream_sac_coordinator_unblock_group`...
+[RABBITMQ] 2026-04-13 03:15:44.142019+00:00 [notice] <0.316.0> Feature flags: `stream_sac_coordinator_unblock_group` enabled
+[RABBITMQ] 2026-04-13 03:15:44.142187+00:00 [notice] <0.316.0> Feature flags: attempt to enable `restart_streams`...
+[RABBITMQ] 2026-04-13 03:15:44.213020+00:00 [notice] <0.316.0> Feature flags: `restart_streams` enabled
+[RABBITMQ] 2026-04-13 03:15:44.213204+00:00 [notice] <0.316.0> Feature flags: attempt to enable `message_containers`...
+[RABBITMQ] 2026-04-13 03:15:44.283826+00:00 [notice] <0.316.0> Feature flags: `message_containers` enabled
+[RABBITMQ] 2026-04-13 03:15:44.283977+00:00 [notice] <0.316.0> Feature flags: attempt to enable `message_containers_deaths_v2`...
+[RABBITMQ] 2026-04-13 03:15:44.353885+00:00 [notice] <0.316.0> Feature flags: `message_containers_deaths_v2` enabled
+[RABBITMQ] 2026-04-13 03:15:44.354792+00:00 [info] <0.254.0> DB: virgin node -> run peer discovery
+[RABBITMQ] 2026-04-13 03:15:44.354874+00:00 [warning] <0.254.0> Classic peer discovery backend: list of nodes does not contain the local node []
+[RABBITMQ] 2026-04-13 03:15:44.363698+00:00 [notice] <0.44.0> Application mnesia exited with reason: stopped
+[RABBITMQ] 2026-04-13 03:15:44.460353+00:00 [info] <0.254.0> Waiting for Mnesia tables for 30000 ms, 9 retries left
+[RABBITMQ] 2026-04-13 03:15:44.460475+00:00 [info] <0.254.0> Successfully synced tables from a peer
+[RABBITMQ] 2026-04-13 03:15:44.460617+00:00 [info] <0.254.0> Waiting for Mnesia tables for 30000 ms, 9 retries left
+[RABBITMQ] 2026-04-13 03:15:44.460740+00:00 [info] <0.254.0> Successfully synced tables from a peer
+[RABBITMQ] 2026-04-13 03:15:44.463595+00:00 [info] <0.254.0> Waiting for Mnesia tables for 30000 ms, 9 retries left
+[RABBITMQ] 2026-04-13 03:15:44.463723+00:00 [info] <0.254.0> Successfully synced tables from a peer
+[RABBITMQ] 2026-04-13 03:15:44.463913+00:00 [info] <0.254.0> Running boot step tracking_metadata_store defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.464027+00:00 [info] <0.558.0> Setting up a table for connection tracking on this node: tracked_connection
+[RABBITMQ] 2026-04-13 03:15:44.464103+00:00 [info] <0.558.0> Setting up a table for per-vhost connection counting on this node: tracked_connection_per_vhost
+[RABBITMQ] 2026-04-13 03:15:44.464184+00:00 [info] <0.558.0> Setting up a table for per-user connection counting on this node: tracked_connection_per_user
+[RABBITMQ] 2026-04-13 03:15:44.464294+00:00 [info] <0.558.0> Setting up a table for channel tracking on this node: tracked_channel
+[RABBITMQ] 2026-04-13 03:15:44.464369+00:00 [info] <0.558.0> Setting up a table for channel tracking on this node: tracked_channel_per_user
+[RABBITMQ] 2026-04-13 03:15:44.464436+00:00 [info] <0.254.0> Running boot step networking_metadata_store defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.464507+00:00 [info] <0.254.0> Running boot step feature_flags defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.464638+00:00 [info] <0.254.0> Running boot step codec_correctness_check defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.464674+00:00 [info] <0.254.0> Running boot step external_infrastructure defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.464718+00:00 [info] <0.254.0> Running boot step rabbit_event defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.464804+00:00 [info] <0.254.0> Running boot step rabbit_registry defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.464866+00:00 [info] <0.254.0> Running boot step rabbit_auth_mechanism_amqplain defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.464940+00:00 [info] <0.254.0> Running boot step rabbit_auth_mechanism_cr_demo defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.464994+00:00 [info] <0.254.0> Running boot step rabbit_auth_mechanism_plain defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465040+00:00 [info] <0.254.0> Running boot step rabbit_exchange_type_direct defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465102+00:00 [info] <0.254.0> Running boot step rabbit_exchange_type_fanout defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465151+00:00 [info] <0.254.0> Running boot step rabbit_exchange_type_headers defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465203+00:00 [info] <0.254.0> Running boot step rabbit_exchange_type_topic defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465286+00:00 [info] <0.254.0> Running boot step rabbit_mirror_queue_mode_all defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465364+00:00 [info] <0.254.0> Running boot step rabbit_mirror_queue_mode_exactly defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465437+00:00 [info] <0.254.0> Running boot step rabbit_mirror_queue_mode_nodes defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465502+00:00 [info] <0.254.0> Running boot step rabbit_priority_queue defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465547+00:00 [info] <0.254.0> Priority queues enabled, real BQ is rabbit_variable_queue
+[RABBITMQ] 2026-04-13 03:15:44.465616+00:00 [info] <0.254.0> Running boot step rabbit_queue_location_client_local defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465684+00:00 [info] <0.254.0> Running boot step rabbit_queue_location_min_masters defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465756+00:00 [info] <0.254.0> Running boot step rabbit_queue_location_random defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465834+00:00 [info] <0.254.0> Running boot step kernel_ready defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.465895+00:00 [info] <0.254.0> Running boot step rabbit_sysmon_minder defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.466048+00:00 [info] <0.254.0> Running boot step rabbit_epmd_monitor defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.466845+00:00 [info] <0.566.0> epmd monitor knows us, inter-node communication (distribution) port: 25672
+[RABBITMQ] 2026-04-13 03:15:44.466934+00:00 [info] <0.254.0> Running boot step guid_generator defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.467942+00:00 [info] <0.254.0> Running boot step rabbit_node_monitor defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.468156+00:00 [info] <0.570.0> Starting rabbit_node_monitor (in ignore mode)
+[RABBITMQ] 2026-04-13 03:15:44.468296+00:00 [info] <0.254.0> Running boot step delegate_sup defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.469149+00:00 [info] <0.254.0> Running boot step rabbit_memory_monitor defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.469537+00:00 [info] <0.254.0> Running boot step rabbit_fifo_dlx_sup defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.470400+00:00 [info] <0.254.0> Running boot step core_initialized defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.470454+00:00 [info] <0.254.0> Running boot step rabbit_channel_tracking_handler defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.470516+00:00 [info] <0.254.0> Running boot step rabbit_connection_tracking_handler defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.470597+00:00 [info] <0.254.0> Running boot step rabbit_definitions_hashing defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.470720+00:00 [info] <0.254.0> Running boot step rabbit_exchange_parameters defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.500989+00:00 [info] <0.254.0> Running boot step rabbit_mirror_queue_misc defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.501531+00:00 [info] <0.254.0> Running boot step rabbit_policies defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.501973+00:00 [info] <0.254.0> Running boot step rabbit_policy defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.502087+00:00 [info] <0.254.0> Running boot step rabbit_queue_location_validator defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.502155+00:00 [info] <0.254.0> Running boot step rabbit_quorum_memory_manager defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.502211+00:00 [info] <0.254.0> Running boot step rabbit_quorum_queue defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.502679+00:00 [info] <0.254.0> Running boot step rabbit_stream_coordinator defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.502915+00:00 [info] <0.254.0> Running boot step rabbit_vhost_limit defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.503050+00:00 [info] <0.254.0> Running boot step rabbit_federation_parameters defined by app rabbitmq_federation
+[RABBITMQ] 2026-04-13 03:15:44.503307+00:00 [info] <0.254.0> Running boot step rabbit_federation_supervisor defined by app rabbitmq_federation
+[RABBITMQ] 2026-04-13 03:15:44.510911+00:00 [info] <0.254.0> Running boot step rabbit_federation_queue defined by app rabbitmq_federation
+[RABBITMQ] 2026-04-13 03:15:44.511079+00:00 [info] <0.254.0> Running boot step rabbit_federation_upstream_exchange defined by app rabbitmq_federation
+[RABBITMQ] 2026-04-13 03:15:44.511165+00:00 [info] <0.254.0> Running boot step rabbit_mgmt_reset_handler defined by app rabbitmq_management
+[RABBITMQ] 2026-04-13 03:15:44.511300+00:00 [info] <0.254.0> Running boot step rabbit_mgmt_db_handler defined by app rabbitmq_management_agent
+[RABBITMQ] 2026-04-13 03:15:44.511353+00:00 [info] <0.254.0> Management plugin: using rates mode 'basic'
+[RABBITMQ] 2026-04-13 03:15:44.511607+00:00 [info] <0.254.0> Running boot step recovery defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.524514+00:00 [info] <0.254.0> Running boot step empty_db_check defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.524615+00:00 [info] <0.254.0> Will seed default virtual host and user...
+[RABBITMQ] 2026-04-13 03:15:44.524754+00:00 [info] <0.254.0> Adding vhost '/' (description: 'Default virtual host', tags: [])
+[RABBITMQ] 2026-04-13 03:15:44.531681+00:00 [info] <0.630.0> Making sure data directory '/var/lib/rabbitmq/mnesia/rabbit@14f4da6f1c67/msg_stores/vhosts/628WB79CIFDYO9LJI6DKMI09L' for vhost '/' exists
+[RABBITMQ] 2026-04-13 03:15:44.532739+00:00 [info] <0.630.0> Setting segment_entry_count for vhost '/' with 0 queues to '2048'
+[RABBITMQ] 2026-04-13 03:15:44.545360+00:00 [info] <0.630.0> Starting message stores for vhost '/'
+[RABBITMQ] 2026-04-13 03:15:44.545568+00:00 [info] <0.639.0> Message store "628WB79CIFDYO9LJI6DKMI09L/msg_store_transient": using rabbit_msg_store_ets_index to provide index
+[RABBITMQ] 2026-04-13 03:15:44.547907+00:00 [info] <0.630.0> Started message store of type transient for vhost '/'
+[RABBITMQ] 2026-04-13 03:15:44.548228+00:00 [info] <0.643.0> Message store "628WB79CIFDYO9LJI6DKMI09L/msg_store_persistent": using rabbit_msg_store_ets_index to provide index
+[RABBITMQ] 2026-04-13 03:15:44.548870+00:00 [warning] <0.643.0> Message store "628WB79CIFDYO9LJI6DKMI09L/msg_store_persistent": rebuilding indices from scratch
+[RABBITMQ] 2026-04-13 03:15:44.552365+00:00 [info] <0.630.0> Started message store of type persistent for vhost '/'
+[RABBITMQ] 2026-04-13 03:15:44.552528+00:00 [info] <0.630.0> Recovering 0 queues of type rabbit_classic_queue took 19ms
+[RABBITMQ] 2026-04-13 03:15:44.552588+00:00 [info] <0.630.0> Recovering 0 queues of type rabbit_quorum_queue took 0ms
+[RABBITMQ] 2026-04-13 03:15:44.552838+00:00 [info] <0.630.0> Recovering 0 queues of type rabbit_stream_queue took 0ms
+[RABBITMQ] 2026-04-13 03:15:44.555816+00:00 [info] <0.254.0> Created user 'app'
+[RABBITMQ] 2026-04-13 03:15:44.557364+00:00 [info] <0.254.0> Successfully set user tags for user 'app' to [administrator]
+[RABBITMQ] 2026-04-13 03:15:44.558615+00:00 [info] <0.254.0> Successfully set permissions for user 'app' in virtual host '/' to '.*', '.*', '.*'
+[RABBITMQ] 2026-04-13 03:15:44.558679+00:00 [info] <0.254.0> Running boot step rabbit_observer_cli defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.558783+00:00 [info] <0.254.0> Running boot step rabbit_looking_glass defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.558841+00:00 [info] <0.254.0> Running boot step rabbit_core_metrics_gc defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.559100+00:00 [info] <0.254.0> Running boot step background_gc defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.559294+00:00 [info] <0.254.0> Running boot step routing_ready defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.559368+00:00 [info] <0.254.0> Running boot step pre_flight defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.559421+00:00 [info] <0.254.0> Running boot step notify_cluster defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.559476+00:00 [info] <0.254.0> Running boot step networking defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.559533+00:00 [info] <0.254.0> Running boot step rabbit_quorum_queue_periodic_membership_reconciliation defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.559685+00:00 [info] <0.254.0> Running boot step definition_import_worker_pool defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.559750+00:00 [info] <0.315.0> Starting worker pool 'definition_import_pool' with 4 processes in it
+[RABBITMQ] 2026-04-13 03:15:44.560025+00:00 [info] <0.254.0> Running boot step cluster_name defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.560091+00:00 [info] <0.254.0> Initialising internal cluster ID to 'rabbitmq-cluster-id-icyI4zOldUTxfy38Z4CQUg'
+[RABBITMQ] 2026-04-13 03:15:44.561520+00:00 [info] <0.254.0> Running boot step virtual_host_reconciliation defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.561746+00:00 [info] <0.254.0> Running boot step direct_client defined by app rabbit
+[RABBITMQ] 2026-04-13 03:15:44.561849+00:00 [info] <0.254.0> Running boot step rabbit_federation_exchange defined by app rabbitmq_federation
+[RABBITMQ] 2026-04-13 03:15:44.562606+00:00 [info] <0.254.0> Running boot step rabbit_management_load_definitions defined by app rabbitmq_management
+[RABBITMQ] 2026-04-13 03:15:44.562723+00:00 [info] <0.680.0> Resetting node maintenance status
+[RABBITMQ] 2026-04-13 03:15:44.705992+00:00 [warning] <0.709.0> Deprecated features: `management_metrics_collection`: Feature `management_metrics_collection` is deprecated.
+[RABBITMQ] 2026-04-13 03:15:44.705992+00:00 [warning] <0.709.0> By default, this feature can still be used for now.
+[RABBITMQ] 2026-04-13 03:15:44.705992+00:00 [warning] <0.709.0> Its use will not be permitted by default in a future minor RabbitMQ version and the feature will be removed from a future major RabbitMQ version; actual versions to be determined.
+[RABBITMQ] 2026-04-13 03:15:44.705992+00:00 [warning] <0.709.0> To continue using this feature when it is not permitted by default, set the following parameter in your configuration:
+[RABBITMQ] 2026-04-13 03:15:44.705992+00:00 [warning] <0.709.0>     "deprecated_features.permit.management_metrics_collection = true"
+[RABBITMQ] 2026-04-13 03:15:44.705992+00:00 [warning] <0.709.0> To test RabbitMQ as if the feature was removed, set this in your configuration:
+[RABBITMQ] 2026-04-13 03:15:44.705992+00:00 [warning] <0.709.0>     "deprecated_features.permit.management_metrics_collection = false"
+[RABBITMQ] 2026-04-13 03:15:47.088796+00:00 [info] <0.746.0> Management plugin: HTTP (non-TLS) listener started on port 15672
+[RABBITMQ] 2026-04-13 03:15:47.088938+00:00 [info] <0.776.0> Statistics database started.
+[RABBITMQ] 2026-04-13 03:15:47.089053+00:00 [info] <0.775.0> Starting worker pool 'management_worker_pool' with 3 processes in it
+[RABBITMQ] 2026-04-13 03:15:47.097867+00:00 [info] <0.794.0> Prometheus metrics: HTTP (non-TLS) listener started on port 15692
+[RABBITMQ] 2026-04-13 03:15:47.098000+00:00 [info] <0.680.0> Ready to start client connection listeners
+[RABBITMQ] 2026-04-13 03:15:47.099676+00:00 [info] <0.838.0> started TCP listener on [::]:5672
+[RABBITMQ]  completed with 5 plugins.
+[RABBITMQ] 2026-04-13 03:15:47.177989+00:00 [info] <0.680.0> Server startup complete; 5 plugins started.
+[RABBITMQ] 2026-04-13 03:15:47.177989+00:00 [info] <0.680.0>  * rabbitmq_prometheus
+[RABBITMQ] 2026-04-13 03:15:47.177989+00:00 [info] <0.680.0>  * rabbitmq_federation
+[RABBITMQ] 2026-04-13 03:15:47.177989+00:00 [info] <0.680.0>  * rabbitmq_management
+[RABBITMQ] 2026-04-13 03:15:47.177989+00:00 [info] <0.680.0>  * rabbitmq_management_agent
+[RABBITMQ] 2026-04-13 03:15:47.177989+00:00 [info] <0.680.0>  * rabbitmq_web_dispatch
+[RABBITMQ] 2026-04-13 03:15:47.179071+00:00 [info] <0.9.0> Time to start RabbitMQ: 6590 ms
+03:15:47.747 [main] INFO tc.rabbitmq:3.13-management -- Container rabbitmq:3.13-management started in PT8.2553949S
+03:15:47.748 [testcontainers-lifecycle-0] INFO tc.postgres:16-alpine -- Creating container for image: postgres:16-alpine
+03:15:47.779 [testcontainers-lifecycle-0] INFO tc.postgres:16-alpine -- Container postgres:16-alpine is starting: 40923d5dd913b5ce7b6bcfece399d145a27f8b6783c1605e78bf5ac465db1ca5
+[POSTGRES] The files belonging to this database system will be owned by user "postgres".
+[POSTGRES] This user must also own the server process.
+[POSTGRES] The database cluster will be initialized with locale "en_US.utf8".
+[POSTGRES] The default database encoding has accordingly been set to "UTF8".
+[POSTGRES] The default text search configuration will be set to "english".
+[POSTGRES] Data page checksums are disabled.
+[POSTGRES] fixing permissions on existing directory /var/lib/postgresql/data ... ok
+[POSTGRES] creating subdirectories ... ok
+[POSTGRES] selecting dynamic shared memory implementation ... posix
+[POSTGRES] selecting default max_connections ... 100
+[POSTGRES] selecting default shared_buffers ... 128MB
+[POSTGRES] selecting default time zone ... UTC
+[POSTGRES] creating configuration files ... ok
+[POSTGRES] running bootstrap script ... ok
+[POSTGRES] sh: locale: not found
+[POSTGRES] 2026-04-13 03:15:48.404 UTC [51] WARNING:  no usable system locales were found
+[POSTGRES] performing post-bootstrap initialization ... ok
+[POSTGRES] syncing data to disk ... ok
+[POSTGRES] Success. You can now start the database server using:
+[POSTGRES]     pg_ctl -D /var/lib/postgresql/data -l logfile start
+[POSTGRES] initdb: warning: enabling "trust" authentication for local connections
+[POSTGRES] initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+[POSTGRES] waiting for server to start....2026-04-13 03:15:48.935 UTC [87] LOG:  starting PostgreSQL 16.13 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+[POSTGRES] 2026-04-13 03:15:48.935 UTC [87] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+[POSTGRES] 2026-04-13 03:15:48.937 UTC [95] LOG:  database system was shut down at 2026-04-13 03:15:48 UTC
+[POSTGRES] 2026-04-13 03:15:48.941 UTC [87] LOG:  database system is ready to accept connections
+[POSTGRES]  done
+[POSTGRES] server started
+[POSTGRES] CREATE DATABASE
+[POSTGRES] /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+[POSTGRES] waiting for server to shut down...2026-04-13 03:15:49.082 UTC [87] LOG:  received fast shutdown request
+[POSTGRES] 2026-04-13 03:15:49.082 UTC [87] LOG:  aborting any active transactions
+[POSTGRES] .2026-04-13 03:15:49.085 UTC [87] LOG:  background worker "logical replication launcher" (PID 98) exited with exit code 1
+[POSTGRES] 2026-04-13 03:15:49.087 UTC [93] LOG:  shutting down
+[POSTGRES] 2026-04-13 03:15:49.087 UTC [93] LOG:  checkpoint starting: shutdown immediate
+[POSTGRES] 2026-04-13 03:15:49.094 UTC [93] LOG:  checkpoint complete: wrote 926 buffers (5.7%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.007 s, sync=0.001 s, total=0.008 s; sync files=0, longest=0.000 s, average=0.000 s; distance=4272 kB, estimate=4272 kB; lsn=0/191E928, redo lsn=0/191E928
+[POSTGRES] 2026-04-13 03:15:49.101 UTC [87] LOG:  database system is shut down
+[POSTGRES]  done
+[POSTGRES] server stopped
+[POSTGRES] PostgreSQL init process complete; ready for start up.
+[POSTGRES] 2026-04-13 03:15:49.202 UTC [1] LOG:  starting PostgreSQL 16.13 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+[POSTGRES] 2026-04-13 03:15:49.202 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+[POSTGRES] 2026-04-13 03:15:49.202 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+[POSTGRES] 2026-04-13 03:15:49.202 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+[POSTGRES] 2026-04-13 03:15:49.204 UTC [118] LOG:  database system was shut down at 2026-04-13 03:15:49 UTC
+[POSTGRES] 2026-04-13 03:15:49.208 UTC [1] LOG:  database system is ready to accept connections
+03:15:49.278 [testcontainers-lifecycle-0] INFO tc.postgres:16-alpine -- Container postgres:16-alpine started in PT1.529753114S
+03:15:49.279 [testcontainers-lifecycle-0] INFO tc.postgres:16-alpine -- Container is started (JDBC URL: jdbc:postgresql://localhost:32771/app?loggerLevel=OFF)
+03:15:49.279 [main] INFO tc.eclipse-temurin:17-jre -- Creating container for image: eclipse-temurin:17-jre
+03:15:51.289 [main] INFO tc.eclipse-temurin:17-jre -- Container eclipse-temurin:17-jre is starting: aae20bd3fb86c64adfb1db59f55b0dbde43d94a424f0819e34835c23e7831ffb
+[API] Picked up JAVA_TOOL_OPTIONS: -javaagent:/jacoco/jacocoagent.jar=output=tcpserver,address=*,port=36300,includes=com.example.* --add-opens=java.base/java.io=ALL-UNNAMED -Xms128m -Xmx512m
+03:15:51.448 [main] INFO org.testcontainers.containers.wait.strategy.HttpWaitStrategy -- /nervous_zhukovsky: Waiting for 300 seconds for URL: http://localhost:32772/actuator/health (where port 32772 maps to container port 8080)
+[API]   .   ____          _            __ _ _
+[API]  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+[API] ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+[API]  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+[API]   '  |____| .__|_| |_|_| |_\__, | / / / /
+[API]  =========|_|==============|___/=/_/_/_/
+[API]  :: Spring Boot ::                (v3.4.1)
+[API] 2026-04-13T03:15:52.568Z  INFO 1 --- [messaging-api] [           main] com.example.messaging.Application        : Starting Application v0.0.1-SNAPSHOT using Java 17.0.18 with PID 1 (/app/app.jar started by root in /app)
+[API] 2026-04-13T03:15:52.572Z  INFO 1 --- [messaging-api] [           main] com.example.messaging.Application        : No active profile set, falling back to 1 default profile: "default"
+[API] 2026-04-13T03:15:53.842Z  INFO 1 --- [messaging-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+[API] 2026-04-13T03:15:53.902Z  INFO 1 --- [messaging-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 48 ms. Found 1 JPA repository interface.
+[API] 2026-04-13T03:15:54.741Z  INFO 1 --- [messaging-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+[API] 2026-04-13T03:15:54.754Z  INFO 1 --- [messaging-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+[API] 2026-04-13T03:15:54.755Z  INFO 1 --- [messaging-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.54]
+[API] 2026-04-13T03:15:54.789Z  INFO 1 --- [messaging-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+[API] 2026-04-13T03:15:54.790Z  INFO 1 --- [messaging-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2157 ms
+[API] 2026-04-13T03:15:55.182Z  INFO 1 --- [messaging-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+[API] 2026-04-13T03:15:55.391Z  INFO 1 --- [messaging-api] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@6c24f61d
+[API] 2026-04-13T03:15:55.393Z  INFO 1 --- [messaging-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+[API] 2026-04-13T03:15:55.437Z  INFO 1 --- [messaging-api] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://postgres:5432/app (PostgreSQL 16.13)
+[API] 2026-04-13T03:15:55.491Z  INFO 1 --- [messaging-api] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+[API] 2026-04-13T03:15:55.495Z  INFO 1 --- [messaging-api] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.023s)
+[API] 2026-04-13T03:15:55.517Z  INFO 1 --- [messaging-api] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+[API] 2026-04-13T03:15:55.588Z  INFO 1 --- [messaging-api] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+[API] 2026-04-13T03:15:55.604Z  INFO 1 --- [messaging-api] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - create messages"
+[API] 2026-04-13T03:15:55.644Z  INFO 1 --- [messaging-api] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v1 (execution time 00:00.015s)
+[API] 2026-04-13T03:15:55.764Z  INFO 1 --- [messaging-api] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+[API] 2026-04-13T03:15:55.824Z  INFO 1 --- [messaging-api] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.4.Final
+[API] 2026-04-13T03:15:55.857Z  INFO 1 --- [messaging-api] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+[API] 2026-04-13T03:15:56.141Z  INFO 1 --- [messaging-api] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+[API] 2026-04-13T03:15:56.216Z  INFO 1 --- [messaging-api] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+[API] 	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+[API] 	Database driver: undefined/unknown
+[API] 	Database version: 16.13
+[API] 	Autocommit mode: undefined/unknown
+[API] 	Isolation level: undefined/unknown
+[API] 	Minimum pool size: undefined/unknown
+[API] 	Maximum pool size: undefined/unknown
+[API] 2026-04-13T03:15:57.112Z  INFO 1 --- [messaging-api] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+[API] 2026-04-13T03:15:57.147Z  INFO 1 --- [messaging-api] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+[API] 2026-04-13T03:15:57.979Z  WARN 1 --- [messaging-api] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+[API] 2026-04-13T03:15:58.624Z  INFO 1 --- [messaging-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+[API] 2026-04-13T03:15:58.719Z  INFO 1 --- [messaging-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+[API] 2026-04-13T03:15:58.722Z  INFO 1 --- [messaging-api] [           main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [rabbitmq:5672]
+[RABBITMQ] 2026-04-13 03:15:58.731972+00:00 [info] <0.845.0> accepting AMQP connection <0.845.0> (172.18.0.4:52764 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:15:58.778134+00:00 [info] <0.845.0> connection <0.845.0> (172.18.0.4:52764 -> 172.18.0.2:5672) has a client-provided name: rabbitConnectionFactory#516370c1:0
+[RABBITMQ] 2026-04-13 03:15:58.782026+00:00 [info] <0.845.0> connection <0.845.0> (172.18.0.4:52764 -> 172.18.0.2:5672 - rabbitConnectionFactory#516370c1:0): user 'app' authenticated and granted access to vhost '/'
+[API] 2026-04-13T03:15:58.785Z  INFO 1 --- [messaging-api] [           main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#516370c1:0/SimpleConnection@33a1bb90 [delegate=amqp://app@172.18.0.2:5672/, localPort=52764]
+[API] 2026-04-13T03:15:58.880Z  INFO 1 --- [messaging-api] [           main] com.example.messaging.Application        : Started Application in 6.823 seconds (process running for 7.445)
+[API] 2026-04-13T03:15:59.518Z  INFO 1 --- [messaging-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+[API] 2026-04-13T03:15:59.518Z  INFO 1 --- [messaging-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+[API] 2026-04-13T03:15:59.520Z  INFO 1 --- [messaging-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+03:15:59.607 [main] INFO tc.eclipse-temurin:17-jre -- Container eclipse-temurin:17-jre started in PT10.328007196S
+[RABBITMQ] 2026-04-13 03:16:01.073744+00:00 [info] <0.878.0> accepting AMQP connection <0.878.0> (172.18.0.1:38488 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:16:01.094915+00:00 [info] <0.878.0> connection <0.878.0> (172.18.0.1:38488 -> 172.18.0.2:5672) has a client-provided name: it-it-00d8b867-7c33-40db-a075-3a39719eedf1
+[RABBITMQ] 2026-04-13 03:16:01.098973+00:00 [info] <0.878.0> connection <0.878.0> (172.18.0.1:38488 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1): user 'app' authenticated and granted access to vhost '/'
+[RABBITMQ] 2026-04-13 03:16:01.108965+00:00 [info] <0.878.0> closing AMQP connection <0.878.0> (172.18.0.1:38488 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1, vhost: '/', user: 'app')
+[RABBITMQ] 2026-04-13 03:16:01.211456+00:00 [info] <0.897.0> accepting AMQP connection <0.897.0> (172.18.0.1:38498 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:16:01.213036+00:00 [info] <0.897.0> connection <0.897.0> (172.18.0.1:38498 -> 172.18.0.2:5672) has a client-provided name: it-it-00d8b867-7c33-40db-a075-3a39719eedf1
+[RABBITMQ] 2026-04-13 03:16:01.213941+00:00 [info] <0.897.0> connection <0.897.0> (172.18.0.1:38498 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1): user 'app' authenticated and granted access to vhost '/'
+[RABBITMQ] 2026-04-13 03:16:01.216794+00:00 [info] <0.897.0> closing AMQP connection <0.897.0> (172.18.0.1:38498 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1, vhost: '/', user: 'app')
+[RABBITMQ] 2026-04-13 03:16:01.218180+00:00 [info] <0.914.0> accepting AMQP connection <0.914.0> (172.18.0.1:38504 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:16:01.221277+00:00 [info] <0.914.0> connection <0.914.0> (172.18.0.1:38504 -> 172.18.0.2:5672) has a client-provided name: it-it-00d8b867-7c33-40db-a075-3a39719eedf1
+[RABBITMQ] 2026-04-13 03:16:01.222168+00:00 [info] <0.914.0> connection <0.914.0> (172.18.0.1:38504 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1): user 'app' authenticated and granted access to vhost '/'
+[RABBITMQ] 2026-04-13 03:16:01.225540+00:00 [info] <0.914.0> closing AMQP connection <0.914.0> (172.18.0.1:38504 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1, vhost: '/', user: 'app')
+[RABBITMQ] 2026-04-13 03:16:02.043761+00:00 [info] <0.931.0> accepting AMQP connection <0.931.0> (172.18.0.1:38514 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:16:02.046061+00:00 [info] <0.931.0> connection <0.931.0> (172.18.0.1:38514 -> 172.18.0.2:5672) has a client-provided name: it-it-00d8b867-7c33-40db-a075-3a39719eedf1
+[RABBITMQ] 2026-04-13 03:16:02.047908+00:00 [info] <0.931.0> connection <0.931.0> (172.18.0.1:38514 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1): user 'app' authenticated and granted access to vhost '/'
+[RABBITMQ] 2026-04-13 03:16:02.053144+00:00 [info] <0.931.0> closing AMQP connection <0.931.0> (172.18.0.1:38514 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1, vhost: '/', user: 'app')
+]]></system-out>
+  </testcase>
+  <testcase name="erroDeNegocio_mensagemInvalida_rejeitada_eVaiParaDlq" classname="com.example.messaging.AsyncMessagingIT" time="0.584">
+    <system-out><![CDATA[[RABBITMQ] 2026-04-13 03:16:02.283386+00:00 [info] <0.948.0> accepting AMQP connection <0.948.0> (172.18.0.1:38516 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:16:02.284966+00:00 [info] <0.948.0> connection <0.948.0> (172.18.0.1:38516 -> 172.18.0.2:5672) has a client-provided name: it-it-00d8b867-7c33-40db-a075-3a39719eedf1
+[RABBITMQ] 2026-04-13 03:16:02.285959+00:00 [info] <0.948.0> connection <0.948.0> (172.18.0.1:38516 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1): user 'app' authenticated and granted access to vhost '/'
+[RABBITMQ] 2026-04-13 03:16:02.290415+00:00 [info] <0.948.0> closing AMQP connection <0.948.0> (172.18.0.1:38516 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1, vhost: '/', user: 'app')
+[RABBITMQ] 2026-04-13 03:16:02.392689+00:00 [info] <0.967.0> accepting AMQP connection <0.967.0> (172.18.0.1:38524 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:16:02.394097+00:00 [info] <0.967.0> connection <0.967.0> (172.18.0.1:38524 -> 172.18.0.2:5672) has a client-provided name: it-it-00d8b867-7c33-40db-a075-3a39719eedf1
+[RABBITMQ] 2026-04-13 03:16:02.395078+00:00 [info] <0.967.0> connection <0.967.0> (172.18.0.1:38524 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1): user 'app' authenticated and granted access to vhost '/'
+[RABBITMQ] 2026-04-13 03:16:02.397409+00:00 [info] <0.967.0> closing AMQP connection <0.967.0> (172.18.0.1:38524 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1, vhost: '/', user: 'app')
+[RABBITMQ] 2026-04-13 03:16:02.398656+00:00 [info] <0.984.0> accepting AMQP connection <0.984.0> (172.18.0.1:38532 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:16:02.399679+00:00 [info] <0.984.0> connection <0.984.0> (172.18.0.1:38532 -> 172.18.0.2:5672) has a client-provided name: it-it-00d8b867-7c33-40db-a075-3a39719eedf1
+[RABBITMQ] 2026-04-13 03:16:02.400467+00:00 [info] <0.984.0> connection <0.984.0> (172.18.0.1:38532 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1): user 'app' authenticated and granted access to vhost '/'
+[RABBITMQ] 2026-04-13 03:16:02.403050+00:00 [info] <0.984.0> closing AMQP connection <0.984.0> (172.18.0.1:38532 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1, vhost: '/', user: 'app')
+[API] 2026-04-13T03:16:02.428Z  WARN 1 --- [messaging-api] [ntContainer#0-1] s.a.r.l.ConditionalRejectingErrorHandler : Execution of Rabbit message listener failed.
+[API] org.springframework.amqp.rabbit.support.ListenerExecutionFailedException: Listener method 'public void com.example.messaging.messaging.MessageConsumer.consume(org.springframework.amqp.core.Message)' threw exception
+[API] 	at org.springframework.amqp.rabbit.listener.adapter.MessagingMessageListenerAdapter.invokeHandler(MessagingMessageListenerAdapter.java:279) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.adapter.MessagingMessageListenerAdapter.invokeHandlerAndProcessResult(MessagingMessageListenerAdapter.java:217) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.adapter.MessagingMessageListenerAdapter.onMessage(MessagingMessageListenerAdapter.java:148) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.doInvokeListener(AbstractMessageListenerContainer.java:1682) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.actualInvokeListener(AbstractMessageListenerContainer.java:1604) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.invokeListener(AbstractMessageListenerContainer.java:1592) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.doExecuteListener(AbstractMessageListenerContainer.java:1583) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.executeListenerAndHandleException(AbstractMessageListenerContainer.java:1528) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.lambda$executeListener$8(AbstractMessageListenerContainer.java:1506) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at io.micrometer.observation.Observation.observe(Observation.java:498) ~[micrometer-observation-1.14.2.jar!/:1.14.2]
+[API] 	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.executeListener(AbstractMessageListenerContainer.java:1506) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.doReceiveAndExecute(SimpleMessageListenerContainer.java:1086) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.receiveAndExecute(SimpleMessageListenerContainer.java:1022) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.mainLoop(SimpleMessageListenerContainer.java:1425) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run(SimpleMessageListenerContainer.java:1326) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at java.base/java.lang.Thread.run(Unknown Source) ~[na:na]
+[API] Caused by: org.springframework.amqp.AmqpRejectAndDontRequeueException: Missing required field: type
+[API] 	at com.example.messaging.messaging.MessageConsumer.ensureBusinessValid(MessageConsumer.java:53) ~[!/:0.0.1-SNAPSHOT]
+[API] 	at com.example.messaging.messaging.MessageConsumer.consume(MessageConsumer.java:39) ~[!/:0.0.1-SNAPSHOT]
+[API] 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+[API] 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(Unknown Source) ~[na:na]
+[API] 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source) ~[na:na]
+[API] 	at java.base/java.lang.reflect.Method.invoke(Unknown Source) ~[na:na]
+[API] 	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359) ~[spring-aop-6.2.1.jar!/:6.2.1]
+[API] 	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.2.1.jar!/:6.2.1]
+[API] 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.2.1.jar!/:6.2.1]
+[API] 	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:380) ~[spring-tx-6.2.1.jar!/:6.2.1]
+[API] 	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.2.1.jar!/:6.2.1]
+[API] 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.1.jar!/:6.2.1]
+[API] 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:727) ~[spring-aop-6.2.1.jar!/:6.2.1]
+[API] 	at com.example.messaging.messaging.MessageConsumer$$SpringCGLIB$$0.consume(<generated>) ~[!/:0.0.1-SNAPSHOT]
+[API] 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+[API] 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(Unknown Source) ~[na:na]
+[API] 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source) ~[na:na]
+[API] 	at java.base/java.lang.reflect.Method.invoke(Unknown Source) ~[na:na]
+[API] 	at org.springframework.messaging.handler.invocation.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:169) ~[spring-messaging-6.2.1.jar!/:6.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.adapter.KotlinAwareInvocableHandlerMethod.doInvoke(KotlinAwareInvocableHandlerMethod.java:45) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.messaging.handler.invocation.InvocableHandlerMethod.invoke(InvocableHandlerMethod.java:119) ~[spring-messaging-6.2.1.jar!/:6.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.adapter.HandlerAdapter.invoke(HandlerAdapter.java:75) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	at org.springframework.amqp.rabbit.listener.adapter.MessagingMessageListenerAdapter.invokeHandler(MessagingMessageListenerAdapter.java:270) ~[spring-rabbit-3.2.1.jar!/:3.2.1]
+[API] 	... 15 common frames omitted
+[RABBITMQ] 2026-04-13 03:16:02.527432+00:00 [info] <0.1001.0> accepting AMQP connection <0.1001.0> (172.18.0.1:38546 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:16:02.528731+00:00 [info] <0.1001.0> connection <0.1001.0> (172.18.0.1:38546 -> 172.18.0.2:5672) has a client-provided name: it-it-00d8b867-7c33-40db-a075-3a39719eedf1
+[RABBITMQ] 2026-04-13 03:16:02.529686+00:00 [info] <0.1001.0> connection <0.1001.0> (172.18.0.1:38546 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1): user 'app' authenticated and granted access to vhost '/'
+[RABBITMQ] 2026-04-13 03:16:02.531837+00:00 [info] <0.1001.0> closing AMQP connection <0.1001.0> (172.18.0.1:38546 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1, vhost: '/', user: 'app')
+]]></system-out>
+  </testcase>
+  <testcase name="idempotencia_mesmoMessageId_duasVezes_persisteApenasUma" classname="com.example.messaging.AsyncMessagingIT" time="0.492">
+    <system-out><![CDATA[[RABBITMQ] 2026-04-13 03:16:02.865863+00:00 [info] <0.1018.0> accepting AMQP connection <0.1018.0> (172.18.0.1:38556 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:16:02.867194+00:00 [info] <0.1018.0> connection <0.1018.0> (172.18.0.1:38556 -> 172.18.0.2:5672) has a client-provided name: it-it-00d8b867-7c33-40db-a075-3a39719eedf1
+[RABBITMQ] 2026-04-13 03:16:02.868157+00:00 [info] <0.1018.0> connection <0.1018.0> (172.18.0.1:38556 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1): user 'app' authenticated and granted access to vhost '/'
+[RABBITMQ] 2026-04-13 03:16:02.872577+00:00 [info] <0.1018.0> closing AMQP connection <0.1018.0> (172.18.0.1:38556 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1, vhost: '/', user: 'app')
+[RABBITMQ] 2026-04-13 03:16:02.974513+00:00 [info] <0.1037.0> accepting AMQP connection <0.1037.0> (172.18.0.1:38568 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:16:02.975927+00:00 [info] <0.1037.0> connection <0.1037.0> (172.18.0.1:38568 -> 172.18.0.2:5672) has a client-provided name: it-it-00d8b867-7c33-40db-a075-3a39719eedf1
+[RABBITMQ] 2026-04-13 03:16:02.976804+00:00 [info] <0.1037.0> connection <0.1037.0> (172.18.0.1:38568 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1): user 'app' authenticated and granted access to vhost '/'
+[RABBITMQ] 2026-04-13 03:16:02.979896+00:00 [info] <0.1037.0> closing AMQP connection <0.1037.0> (172.18.0.1:38568 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1, vhost: '/', user: 'app')
+[RABBITMQ] 2026-04-13 03:16:02.981214+00:00 [info] <0.1054.0> accepting AMQP connection <0.1054.0> (172.18.0.1:38572 -> 172.18.0.2:5672)
+[RABBITMQ] 2026-04-13 03:16:02.982598+00:00 [info] <0.1054.0> connection <0.1054.0> (172.18.0.1:38572 -> 172.18.0.2:5672) has a client-provided name: it-it-00d8b867-7c33-40db-a075-3a39719eedf1
+[RABBITMQ] 2026-04-13 03:16:02.983577+00:00 [info] <0.1054.0> connection <0.1054.0> (172.18.0.1:38572 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1): user 'app' authenticated and granted access to vhost '/'
+[RABBITMQ] 2026-04-13 03:16:02.986575+00:00 [info] <0.1054.0> closing AMQP connection <0.1054.0> (172.18.0.1:38572 -> 172.18.0.2:5672 - it-it-00d8b867-7c33-40db-a075-3a39719eedf1, vhost: '/', user: 'app')
+]]></system-out>
+  </testcase>
+</testsuite>
