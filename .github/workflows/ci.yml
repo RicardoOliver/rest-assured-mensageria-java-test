@@ -274,18 +274,9 @@ jobs:
         run: |
           mkdir -p site/jacoco site/jacoco-it site/surefire site/failsafe
 
-          # ── Helper: resolve caminho do HTML (target/site/ ou target/reports/) ──
-          resolve_html() {
-            local name="$1"
-            if [ -f "target/site/${name}" ]; then
-              echo "target/site/${name}"
-            elif [ -f "target/reports/${name}" ]; then
-              echo "target/reports/${name}"
-            else
-              echo ""
-            fi
-          }
-
+          # ── Helper: localiza HTML em qualquer subpasta de target/ ─
+          # Usa find para não depender do caminho exato que o Maven escolheu
+          # (pode ser target/site/, target/reports/, target/maven-reports/, etc.)
           copy_assets() {
             local dest="$1"
             [ -d target/site/css ]    && cp -r target/site/css/.    "${dest}/css/"    || true
@@ -311,26 +302,26 @@ jobs:
           fi
 
           # ── Surefire HTML ─────────────────────────────────
-          # Tenta target/site/ primeiro, depois target/reports/ como fallback
-          SUREFIRE_HTML=$(resolve_html "surefire-report.html")
+          # find varre todo target/ — independente do caminho que o Maven usou
+          SUREFIRE_HTML=$(find target/ -name "surefire-report.html" 2>/dev/null | head -1)
           if [ -n "$SUREFIRE_HTML" ]; then
             cp "$SUREFIRE_HTML" site/surefire/index.html
             copy_assets site/surefire
             echo "✅ Surefire HTML copiado de: $SUREFIRE_HTML"
           else
-            echo "❌ surefire-report.html não encontrado em target/site/ nem target/reports/"
+            echo "❌ surefire-report.html não encontrado em nenhum caminho de target/"
             echo "<h2>Surefire Report não disponível neste run</h2>" > site/surefire/index.html
           fi
 
           # ── Failsafe HTML ─────────────────────────────────
-          # Tenta target/site/ primeiro, depois target/reports/ como fallback
-          FAILSAFE_HTML=$(resolve_html "failsafe-report.html")
+          # find varre todo target/ — independente do caminho que o Maven usou
+          FAILSAFE_HTML=$(find target/ -name "failsafe-report.html" 2>/dev/null | head -1)
           if [ -n "$FAILSAFE_HTML" ]; then
             cp "$FAILSAFE_HTML" site/failsafe/index.html
             copy_assets site/failsafe
             echo "✅ Failsafe HTML copiado de: $FAILSAFE_HTML"
           else
-            echo "ℹ️  failsafe-report.html não encontrado em target/site/ nem target/reports/"
+            echo "ℹ️  failsafe-report.html não encontrado em nenhum caminho de target/"
             echo "<h2>Failsafe Report não disponível neste run</h2>" > site/failsafe/index.html
           fi
 
