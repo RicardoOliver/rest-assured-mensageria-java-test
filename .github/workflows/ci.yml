@@ -154,27 +154,38 @@ jobs:
           fi
 
       # ── Geração de relatórios HTML Surefire/Failsafe ──────
-      # FIX: target/surefire-reports/ contém apenas XMLs — o browser não renderiza XML.
-      #      É necessário executar surefire-report:report-only e failsafe-report-only
-      #      para gerar os HTMLs em target/site/ antes de copiar para site/.
+      # FIX: -Doutput.directory=target/site força o Maven a gerar o HTML em
+      #      target/site/ em vez de target/reports/ (comportamento observado no log).
+      # FIX: unit tests não geraram target/surefire-reports/ neste projeto —
+      #      apenas IT tests via Failsafe estão ativos. O step lida com ambos.
       - name: 📝 Generate Surefire & Failsafe HTML Reports
         if: always()
         run: |
+          # ── Surefire (unit tests) ─────────────────────────
           if [ -d target/surefire-reports ] && ls target/surefire-reports/TEST-*.xml 1>/dev/null 2>&1; then
             echo "✅ Gerando Surefire HTML Report..."
-            mvn -B -ntp surefire-report:report-only -DshowSuccess=true \
+            mvn -B -ntp surefire-report:report-only \
+              -DshowSuccess=true \
+              -Doutput.directory=target/site \
               || echo "⚠️  surefire-report:report-only falhou"
           else
-            echo "ℹ️  Nenhum XML de surefire encontrado — HTML não gerado"
+            echo "ℹ️  target/surefire-reports/ não encontrado — unit tests não rodaram neste perfil"
           fi
 
+          # ── Failsafe (integration tests) ──────────────────
+          # FIX: -Doutput.directory força geração em target/site/
+          #      evitando o comportamento padrão que grava em target/reports/
           if [ -d target/failsafe-reports ] && ls target/failsafe-reports/TEST-*.xml 1>/dev/null 2>&1; then
             echo "✅ Gerando Failsafe HTML Report..."
             mvn -B -ntp surefire-report:failsafe-report-only \
+              -Doutput.directory=target/site \
               || echo "⚠️  surefire-report:failsafe-report-only falhou"
           else
             echo "ℹ️  Nenhum XML de failsafe encontrado — HTML não gerado"
           fi
+
+          echo "=== Verificando HTMLs gerados ==="
+          find target/ -name "*report*.html" 2>/dev/null | sort || echo "Nenhum HTML de report encontrado" 
 
       # ── Diagnóstico de artefatos ──────────────────────────
       - name: 🔍 Diagnose Build Artifacts
@@ -254,13 +265,32 @@ jobs:
           exit $FAILED
 
       # ── Preparar site para GitHub Pages ──────────────────
-      # FIX: todos os diretórios agora garantem um index.html válido.
-      #      Surefire/Failsafe copiam o HTML gerado (não os XMLs brutos).
+      # FIX: todos os diretórios garantem um index.html válido.
+      # FIX: Surefire/Failsafe verificam target/site/ e target/reports/ como fallback
+      #      pois o Maven pode gravar em qualquer um dependendo da versão do plugin.
       #      CSS e imagens do Maven site são copiados junto para não quebrar o estilo.
       - name: 📄 Prepare Reports Site
         if: always()
         run: |
           mkdir -p site/jacoco site/jacoco-it site/surefire site/failsafe
+
+          # ── Helper: resolve caminho do HTML (target/site/ ou target/reports/) ──
+          resolve_html() {
+            local name="$1"
+            if [ -f "target/site/${name}" ]; then
+              echo "target/site/${name}"
+            elif [ -f "target/reports/${name}" ]; then
+              echo "target/reports/${name}"
+            else
+              echo ""
+            fi
+          }
+
+          copy_assets() {
+            local dest="$1"
+            [ -d target/site/css ]    && cp -r target/site/css/.    "${dest}/css/"    || true
+            [ -d target/site/images ] && cp -r target/site/images/. "${dest}/images/" || true
+          }
 
           # ── JaCoCo Unit ───────────────────────────────────
           if [ -d target/site/jacoco ] && [ -f target/site/jacoco/index.html ]; then
@@ -280,26 +310,27 @@ jobs:
             echo "<h2>JaCoCo IT Report não disponível neste run</h2>" > site/jacoco-it/index.html
           fi
 
-          # ── Surefire HTML (gerado por surefire-report:report-only) ──
-          if [ -f target/site/surefire-report.html ]; then
-            cp target/site/surefire-report.html site/surefire/index.html
-            # Copia assets do Maven site para o estilo funcionar
-            [ -d target/site/css ]    && cp -r target/site/css/.    site/surefire/css/    || true
-            [ -d target/site/images ] && cp -r target/site/images/. site/surefire/images/ || true
-            echo "✅ Surefire HTML copiado"
+          # ── Surefire HTML ─────────────────────────────────
+          # Tenta target/site/ primeiro, depois target/reports/ como fallback
+          SUREFIRE_HTML=$(resolve_html "surefire-report.html")
+          if [ -n "$SUREFIRE_HTML" ]; then
+            cp "$SUREFIRE_HTML" site/surefire/index.html
+            copy_assets site/surefire
+            echo "✅ Surefire HTML copiado de: $SUREFIRE_HTML"
           else
-            echo "❌ surefire-report.html não encontrado"
+            echo "❌ surefire-report.html não encontrado em target/site/ nem target/reports/"
             echo "<h2>Surefire Report não disponível neste run</h2>" > site/surefire/index.html
           fi
 
-          # ── Failsafe HTML (gerado por surefire-report:failsafe-report-only) ──
-          if [ -f target/site/failsafe-report.html ]; then
-            cp target/site/failsafe-report.html site/failsafe/index.html
-            [ -d target/site/css ]    && cp -r target/site/css/.    site/failsafe/css/    || true
-            [ -d target/site/images ] && cp -r target/site/images/. site/failsafe/images/ || true
-            echo "✅ Failsafe HTML copiado"
+          # ── Failsafe HTML ─────────────────────────────────
+          # Tenta target/site/ primeiro, depois target/reports/ como fallback
+          FAILSAFE_HTML=$(resolve_html "failsafe-report.html")
+          if [ -n "$FAILSAFE_HTML" ]; then
+            cp "$FAILSAFE_HTML" site/failsafe/index.html
+            copy_assets site/failsafe
+            echo "✅ Failsafe HTML copiado de: $FAILSAFE_HTML"
           else
-            echo "ℹ️  Failsafe report não disponível"
+            echo "ℹ️  failsafe-report.html não encontrado em target/site/ nem target/reports/"
             echo "<h2>Failsafe Report não disponível neste run</h2>" > site/failsafe/index.html
           fi
 
