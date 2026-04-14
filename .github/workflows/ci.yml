@@ -121,33 +121,59 @@ jobs:
               ;;
           esac
 
-      # ── Geração de cobertura ──────────────────────────────
-      - name: 📊 Generate JaCoCo Report
+      # ── Geração de cobertura JaCoCo ───────────────────────
+      # FIX: goal 'jacoco:report-integration' não existe — usar 'jacoco:report'
+      #      com -Djacoco.dataFile apontando para o .exec correto.
+      #      O parâmetro correto via CLI é -Djacoco.outputDirectory (não -DoutputDirectory).
+      - name: 📊 Generate JaCoCo Reports
         if: always()
         run: |
           echo "=== Verificando exec files ==="
           ls -lah target/jacoco/ 2>/dev/null || echo "⚠️  target/jacoco/ não encontrado"
 
-          # Unit report — aponta para o destFile customizado do pom.xml
+          # Unit report
           if [ -f target/jacoco/jacoco.exec ]; then
             echo "✅ jacoco.exec encontrado ($(wc -c < target/jacoco/jacoco.exec) bytes)"
             mvn -B -ntp jacoco:report \
-              -DdataFile=target/jacoco/jacoco.exec \
-              -DoutputDirectory=target/site/jacoco \
+              -Djacoco.dataFile=target/jacoco/jacoco.exec \
+              -Djacoco.outputDirectory=target/site/jacoco \
               || echo "⚠️  jacoco:report unit falhou"
           else
             echo "❌ jacoco.exec não encontrado — unit report não gerado"
           fi
 
-          # Integration report — só tenta se o exec existir
+          # Integration report — goal correto: jacoco:report (não jacoco:report-integration)
           if [ -f target/jacoco/jacoco-it.exec ]; then
             echo "✅ jacoco-it.exec encontrado ($(wc -c < target/jacoco/jacoco-it.exec) bytes)"
-            mvn -B -ntp jacoco:report-integration \
-              -DdataFile=target/jacoco/jacoco-it.exec \
-              -DoutputDirectory=target/site/jacoco-it \
-              || echo "⚠️  jacoco:report-integration falhou"
+            mvn -B -ntp jacoco:report \
+              -Djacoco.dataFile=target/jacoco/jacoco-it.exec \
+              -Djacoco.outputDirectory=target/site/jacoco-it \
+              || echo "⚠️  jacoco IT report falhou"
           else
             echo "ℹ️  jacoco-it.exec não encontrado — IT report ignorado"
+          fi
+
+      # ── Geração de relatórios HTML Surefire/Failsafe ──────
+      # FIX: target/surefire-reports/ contém apenas XMLs — o browser não renderiza XML.
+      #      É necessário executar surefire-report:report-only e failsafe-report-only
+      #      para gerar os HTMLs em target/site/ antes de copiar para site/.
+      - name: 📝 Generate Surefire & Failsafe HTML Reports
+        if: always()
+        run: |
+          if [ -d target/surefire-reports ] && ls target/surefire-reports/TEST-*.xml 1>/dev/null 2>&1; then
+            echo "✅ Gerando Surefire HTML Report..."
+            mvn -B -ntp surefire-report:report-only -DshowSuccess=true \
+              || echo "⚠️  surefire-report:report-only falhou"
+          else
+            echo "ℹ️  Nenhum XML de surefire encontrado — HTML não gerado"
+          fi
+
+          if [ -d target/failsafe-reports ] && ls target/failsafe-reports/TEST-*.xml 1>/dev/null 2>&1; then
+            echo "✅ Gerando Failsafe HTML Report..."
+            mvn -B -ntp surefire-report:failsafe-report-only \
+              || echo "⚠️  surefire-report:failsafe-report-only falhou"
+          else
+            echo "ℹ️  Nenhum XML de failsafe encontrado — HTML não gerado"
           fi
 
       # ── Diagnóstico de artefatos ──────────────────────────
@@ -160,16 +186,21 @@ jobs:
           echo "=== target/jacoco/ ==="
           ls -lah target/jacoco/ 2>/dev/null || echo "target/jacoco/ não encontrado"
 
-          echo "=== target/site/jacoco/ ==="
-          ls -lah target/site/jacoco/ 2>/dev/null || echo "target/site/jacoco/ não encontrado"
+          echo "=== target/site/ ==="
+          find target/site/ -name "index.html" 2>/dev/null | sort || echo "target/site/ não encontrado"
 
-          echo "=== Surefire ==="
+          echo "=== Surefire XMLs ==="
           ls -lah target/surefire-reports/ 2>/dev/null || echo "surefire-reports não encontrado"
 
-          echo "=== Failsafe ==="
+          echo "=== Failsafe XMLs ==="
           ls -lah target/failsafe-reports/ 2>/dev/null || echo "failsafe-reports não encontrado"
 
-          # Tamanho do .exec para validar se agente gravou dados
+          echo "=== Surefire HTML ==="
+          ls -lah target/site/surefire-report.html 2>/dev/null || echo "surefire-report.html não encontrado"
+
+          echo "=== Failsafe HTML ==="
+          ls -lah target/site/failsafe-report.html 2>/dev/null || echo "failsafe-report.html não encontrado"
+
           if [ -f target/jacoco/jacoco.exec ]; then
             echo "✅ jacoco.exec: $(wc -c < target/jacoco/jacoco.exec) bytes"
           fi
@@ -183,7 +214,6 @@ jobs:
         run: |
           FAILED=0
 
-          # Verifica falhas no surefire (unit tests)
           if ls target/surefire-reports/TEST-*.xml 2>/dev/null | head -1 | grep -q .; then
             FAILURES=$(grep -r 'failures="[^0]"\|errors="[^0]"' target/surefire-reports/ 2>/dev/null | wc -l || echo 0)
             if [[ "$FAILURES" -gt 0 ]]; then
@@ -194,7 +224,6 @@ jobs:
             fi
           fi
 
-          # Verifica falhas no failsafe (integration tests)
           if ls target/failsafe-reports/TEST-*.xml 2>/dev/null | head -1 | grep -q .; then
             IT_FAILURES=$(grep -r 'failures="[^0]"\|errors="[^0]"' target/failsafe-reports/ 2>/dev/null | wc -l || echo 0)
             if [[ "$IT_FAILURES" -gt 0 ]]; then
@@ -208,55 +237,82 @@ jobs:
           exit $FAILED
 
       # ── Preparar site para GitHub Pages ──────────────────
+      # FIX: todos os diretórios agora garantem um index.html válido.
+      #      Surefire/Failsafe copiam o HTML gerado (não os XMLs brutos).
+      #      CSS e imagens do Maven site são copiados junto para não quebrar o estilo.
       - name: 📄 Prepare Reports Site
         if: always()
         run: |
-          mkdir -p site/jacoco
-          mkdir -p site/jacoco-it
-          mkdir -p site/surefire
-          mkdir -p site/failsafe
+          mkdir -p site/jacoco site/jacoco-it site/surefire site/failsafe
 
-          if [ -d target/site/jacoco ]; then
-            cp -r target/site/jacoco/* site/jacoco/
+          # ── JaCoCo Unit ───────────────────────────────────
+          if [ -d target/site/jacoco ] && [ -f target/site/jacoco/index.html ]; then
+            cp -r target/site/jacoco/. site/jacoco/
             echo "✅ JaCoCo unit report copiado"
           else
-            echo "❌ JaCoCo unit report não encontrado"
+            echo "❌ JaCoCo unit: index.html não encontrado"
+            echo "<h2>JaCoCo Unit Report não disponível neste run</h2>" > site/jacoco/index.html
           fi
 
-          if [ -d target/site/jacoco-it ]; then
-            cp -r target/site/jacoco-it/* site/jacoco-it/
+          # ── JaCoCo IT ─────────────────────────────────────
+          if [ -d target/site/jacoco-it ] && [ -f target/site/jacoco-it/index.html ]; then
+            cp -r target/site/jacoco-it/. site/jacoco-it/
             echo "✅ JaCoCo IT report copiado"
           else
-            echo "ℹ️  JaCoCo IT report não encontrado (normal sem -Pit)"
+            echo "ℹ️  JaCoCo IT: index.html não encontrado"
+            echo "<h2>JaCoCo IT Report não disponível neste run</h2>" > site/jacoco-it/index.html
           fi
 
-          if [ -d target/surefire-reports ]; then
-            cp -r target/surefire-reports/* site/surefire/ 2>/dev/null || true
-            echo "✅ Surefire reports copiados"
+          # ── Surefire HTML (gerado por surefire-report:report-only) ──
+          if [ -f target/site/surefire-report.html ]; then
+            cp target/site/surefire-report.html site/surefire/index.html
+            # Copia assets do Maven site para o estilo funcionar
+            [ -d target/site/css ]    && cp -r target/site/css/.    site/surefire/css/    || true
+            [ -d target/site/images ] && cp -r target/site/images/. site/surefire/images/ || true
+            echo "✅ Surefire HTML copiado"
+          else
+            echo "❌ surefire-report.html não encontrado"
+            echo "<h2>Surefire Report não disponível neste run</h2>" > site/surefire/index.html
           fi
 
-          if [ -d target/failsafe-reports ]; then
-            cp -r target/failsafe-reports/* site/failsafe/ 2>/dev/null || true
-            echo "✅ Failsafe reports copiados"
+          # ── Failsafe HTML (gerado por surefire-report:failsafe-report-only) ──
+          if [ -f target/site/failsafe-report.html ]; then
+            cp target/site/failsafe-report.html site/failsafe/index.html
+            [ -d target/site/css ]    && cp -r target/site/css/.    site/failsafe/css/    || true
+            [ -d target/site/images ] && cp -r target/site/images/. site/failsafe/images/ || true
+            echo "✅ Failsafe HTML copiado"
+          else
+            echo "ℹ️  Failsafe report não disponível"
+            echo "<h2>Failsafe Report não disponível neste run</h2>" > site/failsafe/index.html
           fi
 
-          # Gerar índice simples
+          # ── Index principal ───────────────────────────────
           cat > site/index.html << 'EOF'
           <!DOCTYPE html>
           <html lang="pt-BR">
-          <head><meta charset="UTF-8"><title>Test Reports</title>
-          <style>body{font-family:sans-serif;padding:2rem}a{display:block;margin:.5rem 0;font-size:1.1rem}</style>
+          <head>
+            <meta charset="UTF-8">
+            <title>Test Reports</title>
+            <style>
+              body { font-family: sans-serif; padding: 2rem; max-width: 640px; }
+              h1   { margin-bottom: 1.5rem; }
+              a    { display: block; margin: .75rem 0; font-size: 1.1rem; text-decoration: none; color: #0969da; }
+              a:hover { text-decoration: underline; }
+            </style>
           </head>
           <body>
             <h1>📊 Test Reports</h1>
             <a href="jacoco/index.html">🔵 JaCoCo Coverage — Unit Tests</a>
             <a href="jacoco-it/index.html">🟣 JaCoCo Coverage — Integration Tests</a>
-            <a href="surefire/">🧪 Surefire (Unit Tests)</a>
-            <a href="failsafe/">🔗 Failsafe (Integration Tests)</a>
+            <a href="surefire/index.html">🧪 Surefire (Unit Tests)</a>
+            <a href="failsafe/index.html">🔗 Failsafe (Integration Tests)</a>
           </body>
           </html>
           EOF
           echo "✅ index.html gerado"
+
+          echo "=== Estrutura final do site/ ==="
+          find site/ -name "index.html" | sort
 
       # ── Upload de artefatos ───────────────────────────────
       - name: 📦 Upload Test Reports
@@ -396,8 +452,9 @@ jobs:
           name: site-${{ github.run_number }}
           path: ./site
 
+      # FIX: atualizado de @v3 (deprecada) para @v4
       - name: 🌐 Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
