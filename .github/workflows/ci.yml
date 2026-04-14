@@ -186,7 +186,7 @@ jobs:
           echo "=== target/jacoco/ ==="
           ls -lah target/jacoco/ 2>/dev/null || echo "target/jacoco/ não encontrado"
 
-          echo "=== target/site/ ==="
+          echo "=== target/site/ — todos os index.html ==="
           find target/site/ -name "index.html" 2>/dev/null | sort || echo "target/site/ não encontrado"
 
           echo "=== Surefire XMLs ==="
@@ -195,12 +195,29 @@ jobs:
           echo "=== Failsafe XMLs ==="
           ls -lah target/failsafe-reports/ 2>/dev/null || echo "failsafe-reports não encontrado"
 
-          echo "=== Surefire HTML ==="
-          ls -lah target/site/surefire-report.html 2>/dev/null || echo "surefire-report.html não encontrado"
+          echo "=== Surefire HTML (caminho esperado) ==="
+          ls -lah target/site/surefire-report.html 2>/dev/null || echo "surefire-report.html não encontrado no caminho esperado"
 
-          echo "=== Failsafe HTML ==="
-          ls -lah target/site/failsafe-report.html 2>/dev/null || echo "failsafe-report.html não encontrado"
+          echo "=== Failsafe HTML (caminho esperado) ==="
+          ls -lah target/site/failsafe-report.html 2>/dev/null || echo "failsafe-report.html não encontrado no caminho esperado"
 
+          # ── Deep search: localiza os HTMLs onde quer que estejam ──
+          echo "=== 🔎 Procurando surefire-report.html em todo target/ ==="
+          find target/ -name "surefire-report.html" 2>/dev/null \
+            && echo "☝️  Use o caminho acima para corrigir o step Prepare Reports Site" \
+            || echo "❌ surefire-report.html não encontrado em nenhum lugar de target/"
+
+          echo "=== 🔎 Procurando failsafe-report.html em todo target/ ==="
+          find target/ -name "failsafe-report.html" 2>/dev/null \
+            && echo "☝️  Use o caminho acima para corrigir o step Prepare Reports Site" \
+            || echo "❌ failsafe-report.html não encontrado em nenhum lugar de target/"
+
+          # ── Deep search: localiza todos os TEST-*.xml gerados ────
+          echo "=== 🔎 Todos os TEST-*.xml encontrados em target/ ==="
+          find target/ -name "TEST-*.xml" 2>/dev/null | sort \
+            || echo "❌ Nenhum TEST-*.xml encontrado — testes podem não ter rodado"
+
+          # ── Tamanho dos .exec para validar se o agente gravou dados ──
           if [ -f target/jacoco/jacoco.exec ]; then
             echo "✅ jacoco.exec: $(wc -c < target/jacoco/jacoco.exec) bytes"
           fi
