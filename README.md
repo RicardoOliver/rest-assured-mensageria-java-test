@@ -411,7 +411,7 @@ Desenvolvido com precisão por **[Ricardo Oliver](https://github.com/RicardoOliv
 
 <br/>
 
-![Visualizações](https://komarev.com/ghpvc/?username=RicardoOliver-mensageria&color=00C853&style=flat-square&label=VISUALIZAÇÕES+DO+PROJETO)
+![Visualizações](https://views-counter.vercel.app/badge?pageId=RicardoOliver/rest-assured-mensageria-java-test)
 
 <br/>
 
