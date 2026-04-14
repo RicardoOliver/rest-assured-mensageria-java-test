@@ -162,30 +162,33 @@ jobs:
         if: always()
         run: |
           # ── Surefire (unit tests) ─────────────────────────
+          # FIX: parâmetro correto é -DoutputDirectory (camelCase), não -Doutput.directory
+          #      Forçamos um diretório fixo para não depender do <reporting> do pom.xml
           if [ -d target/surefire-reports ] && ls target/surefire-reports/TEST-*.xml 1>/dev/null 2>&1; then
             echo "✅ Gerando Surefire HTML Report..."
             mvn -B -ntp surefire-report:report-only \
               -DshowSuccess=true \
-              -Doutput.directory=target/site \
+              -DoutputDirectory="$(pwd)/target/html-reports" \
               || echo "⚠️  surefire-report:report-only falhou"
+            mv target/html-reports/surefire-report.html target/html-reports/surefire.html 2>/dev/null || true
           else
             echo "ℹ️  target/surefire-reports/ não encontrado — unit tests não rodaram neste perfil"
           fi
 
           # ── Failsafe (integration tests) ──────────────────
-          # FIX: -Doutput.directory força geração em target/site/
-          #      evitando o comportamento padrão que grava em target/reports/
+          # FIX: parâmetro correto é -DoutputDirectory (camelCase), não -Doutput.directory
           if [ -d target/failsafe-reports ] && ls target/failsafe-reports/TEST-*.xml 1>/dev/null 2>&1; then
             echo "✅ Gerando Failsafe HTML Report..."
             mvn -B -ntp surefire-report:failsafe-report-only \
-              -Doutput.directory=target/site \
+              -DoutputDirectory="$(pwd)/target/html-reports" \
               || echo "⚠️  surefire-report:failsafe-report-only falhou"
+            mv target/html-reports/failsafe-report.html target/html-reports/failsafe.html 2>/dev/null || true
           else
             echo "ℹ️  Nenhum XML de failsafe encontrado — HTML não gerado"
           fi
 
-          echo "=== Verificando HTMLs gerados ==="
-          find target/ -name "*report*.html" 2>/dev/null | sort || echo "Nenhum HTML de report encontrado" 
+          echo "=== Verificando HTMLs gerados em target/html-reports/ ==="
+          ls -lah target/html-reports/ 2>/dev/null || echo "❌ target/html-reports/ não criado — goals falharam silenciosamente" 
 
       # ── Diagnóstico de artefatos ──────────────────────────
       - name: 🔍 Diagnose Build Artifacts
@@ -212,16 +215,19 @@ jobs:
           echo "=== Failsafe HTML (caminho esperado) ==="
           ls -lah target/site/failsafe-report.html 2>/dev/null || echo "failsafe-report.html não encontrado no caminho esperado"
 
-          # ── Deep search: localiza os HTMLs onde quer que estejam ──
-          echo "=== 🔎 Procurando surefire-report.html em todo target/ ==="
-          find target/ -name "surefire-report.html" 2>/dev/null \
-            && echo "☝️  Use o caminho acima para corrigir o step Prepare Reports Site" \
-            || echo "❌ surefire-report.html não encontrado em nenhum lugar de target/"
+          # ── Deep search: localiza HTMLs — sem false positive ──────
+          # FIX: find retorna exit 0 mesmo sem resultados, então && sempre disparava.
+          #      Correto: capturar saída e testar com [ -n ]
+          echo "=== 🔎 target/html-reports/ (diretório gerado pelo CI) ==="
+          ls -lah target/html-reports/ 2>/dev/null || echo "❌ target/html-reports/ não existe"
 
-          echo "=== 🔎 Procurando failsafe-report.html em todo target/ ==="
-          find target/ -name "failsafe-report.html" 2>/dev/null \
-            && echo "☝️  Use o caminho acima para corrigir o step Prepare Reports Site" \
-            || echo "❌ failsafe-report.html não encontrado em nenhum lugar de target/"
+          echo "=== 🔎 Procurando surefire.html em todo target/ ==="
+          FOUND=$(find target/ -name "surefire.html" 2>/dev/null)
+          if [ -n "$FOUND" ]; then echo "✅ Encontrado: $FOUND"; else echo "❌ surefire.html não encontrado"; fi
+
+          echo "=== 🔎 Procurando failsafe.html em todo target/ ==="
+          FOUND=$(find target/ -name "failsafe.html" 2>/dev/null)
+          if [ -n "$FOUND" ]; then echo "✅ Encontrado: $FOUND"; else echo "❌ failsafe.html não encontrado"; fi
 
           # ── Deep search: localiza todos os TEST-*.xml gerados ────
           echo "=== 🔎 Todos os TEST-*.xml encontrados em target/ ==="
@@ -302,26 +308,23 @@ jobs:
           fi
 
           # ── Surefire HTML ─────────────────────────────────
-          # find varre todo target/ — independente do caminho que o Maven usou
-          SUREFIRE_HTML=$(find target/ -name "surefire-report.html" 2>/dev/null | head -1)
-          if [ -n "$SUREFIRE_HTML" ]; then
-            cp "$SUREFIRE_HTML" site/surefire/index.html
+          # Os HTMLs são gerados em target/html-reports/ com nome fixo (surefire.html / failsafe.html)
+          if [ -f target/html-reports/surefire.html ]; then
+            cp target/html-reports/surefire.html site/surefire/index.html
             copy_assets site/surefire
-            echo "✅ Surefire HTML copiado de: $SUREFIRE_HTML"
+            echo "✅ Surefire HTML copiado"
           else
-            echo "❌ surefire-report.html não encontrado em nenhum caminho de target/"
+            echo "❌ target/html-reports/surefire.html não encontrado — unit tests não rodaram neste perfil"
             echo "<h2>Surefire Report não disponível neste run</h2>" > site/surefire/index.html
           fi
 
           # ── Failsafe HTML ─────────────────────────────────
-          # find varre todo target/ — independente do caminho que o Maven usou
-          FAILSAFE_HTML=$(find target/ -name "failsafe-report.html" 2>/dev/null | head -1)
-          if [ -n "$FAILSAFE_HTML" ]; then
-            cp "$FAILSAFE_HTML" site/failsafe/index.html
+          if [ -f target/html-reports/failsafe.html ]; then
+            cp target/html-reports/failsafe.html site/failsafe/index.html
             copy_assets site/failsafe
-            echo "✅ Failsafe HTML copiado de: $FAILSAFE_HTML"
+            echo "✅ Failsafe HTML copiado"
           else
-            echo "ℹ️  failsafe-report.html não encontrado em nenhum caminho de target/"
+            echo "❌ target/html-reports/failsafe.html não encontrado"
             echo "<h2>Failsafe Report não disponível neste run</h2>" > site/failsafe/index.html
           fi
 
