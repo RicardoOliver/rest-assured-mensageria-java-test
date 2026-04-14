@@ -1,13 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head><meta charset="UTF-8"><title>Test Reports</title>
-<style>body{font-family:sans-serif;padding:2rem}a{display:block;margin:.5rem 0;font-size:1.1rem}</style>
+<head>
+  <meta charset="UTF-8">
+  <title>Test Reports</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 640px; }
+    h1   { margin-bottom: 1.5rem; }
+    a    { display: block; margin: .75rem 0; font-size: 1.1rem; text-decoration: none; color: #0969da; }
+    a:hover { text-decoration: underline; }
+  </style>
 </head>
 <body>
   <h1>📊 Test Reports</h1>
   <a href="jacoco/index.html">🔵 JaCoCo Coverage — Unit Tests</a>
   <a href="jacoco-it/index.html">🟣 JaCoCo Coverage — Integration Tests</a>
-  <a href="surefire/">🧪 Surefire (Unit Tests)</a>
-  <a href="failsafe/">🔗 Failsafe (Integration Tests)</a>
+  <a href="surefire/index.html">🧪 Surefire (Unit Tests)</a>
+  <a href="failsafe/index.html">🔗 Failsafe (Integration Tests)</a>
 </body>
 </html>
