@@ -1,0 +1,49 @@
+services:
+  rabbitmq-exporter:
+    image: kbudde/rabbitmq-exporter:1.0.0
+    environment:
+      RABBIT_URL: http://rabbitmq:15672
+      RABBIT_USER: app
+      RABBIT_PASSWORD: app
+      PUBLISH_PORT: "9419"
+      OUTPUT_FORMAT: "TTY"
+    depends_on:
+      - rabbitmq
+    ports:
+      - "9419:9419"
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    environment:
+      DATA_SOURCE_NAME: postgresql://app:app@postgres:5432/app?sslmode=disable
+    depends_on:
+      - postgres
+    ports:
+      - "9187:9187"
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - api
+      - rabbitmq-exporter
+      - postgres-exporter
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
