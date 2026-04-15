@@ -1,5 +1,10 @@
 package com.example.messaging;
 
+import io.qameta.allure.Allure;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Story;
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.nio.file.Paths;
@@ -21,6 +26,7 @@ import static org.awaitility.pollinterval.FibonacciPollInterval.fibonacci;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import com.example.messaging.messaging.RabbitTopologyConfig;
@@ -39,6 +45,8 @@ import java.util.Comparator;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Epic("Mensageria")
+@Feature("EDA — HTTP → RabbitMQ → Consumer → Postgres")
 class AsyncMessagingIT {
         static Network network = Network.newNetwork();
         static final String RABBIT_APP_USER = "app";
@@ -115,6 +123,8 @@ class AsyncMessagingIT {
     }
 
         @Test
+        @DisplayName("Caminho feliz: POST aceita, consumer consome e persiste (DB=1, DLQ=0)")
+        @Story("Happy path")
         void caminhoFeliz_mensagemPostada_consumida_ePersistida() {
                 String messageId = newMessageId("happy");
 
@@ -127,28 +137,35 @@ class AsyncMessagingIT {
                                 "messageId", messageId,
                                 "payload", payload);
 
-                RestAssured
-                                .given()
-                                .baseUri(apiBaseUrl)
-                                .contentType(ContentType.JSON)
-                                .body(request)
-                                .when()
-                                .post("/messages")
-                                .then()
-                                .statusCode(202);
+                Allure.step("Publicar mensagem via API (POST /messages)", () -> {
+                        RestAssured
+                                        .given()
+                                        .filter(new AllureRestAssured())
+                                        .baseUri(apiBaseUrl)
+                                        .contentType(ContentType.JSON)
+                                        .body(request)
+                                        .when()
+                                        .post("/messages")
+                                        .then()
+                                        .statusCode(202);
+                });
 
                 // A API apenas publica no broker (async). Persistência ocorre no consumer.
                 // Awaitility trata o "eventually consistent": espera até a linha aparecer no
                 // banco.
-                Awaitility.await()
-                                .atMost(Duration.ofSeconds(60))
-                                .pollInterval(Duration.ofMillis(250))
-                                .until(() -> countMessagesById(messageId) == 1);
+                Allure.step("Aguardar persistência no Postgres", () -> {
+                        Awaitility.await()
+                                        .atMost(Duration.ofSeconds(60))
+                                        .pollInterval(Duration.ofMillis(250))
+                                        .until(() -> countMessagesById(messageId) == 1);
+                });
 
-                Assertions.assertEquals(0, dlqMessageCount());
+                Allure.step("Validar DLQ vazia", () -> Assertions.assertEquals(0, dlqMessageCount()));
         }
 
         @Test
+        @DisplayName("Erro de negócio: mensagem inválida é rejeitada e vai para DLQ (DB=0, DLQ=1)")
+        @Story("Business rule validation")
         void erroDeNegocio_mensagemInvalida_rejeitada_eVaiParaDlq() {
                 String messageId = newMessageId("invalid");
 
@@ -160,32 +177,41 @@ class AsyncMessagingIT {
                                 "messageId", messageId,
                                 "payload", invalidPayload);
 
-                RestAssured
-                                .given()
-                                .baseUri(apiBaseUrl)
-                                .contentType(ContentType.JSON)
-                                .body(request)
-                                .when()
-                                .post("/messages")
-                                .then()
-                                .statusCode(202);
+                Allure.step("Publicar mensagem inválida via API (POST /messages)", () -> {
+                        RestAssured
+                                        .given()
+                                        .filter(new AllureRestAssured())
+                                        .baseUri(apiBaseUrl)
+                                        .contentType(ContentType.JSON)
+                                        .body(request)
+                                        .when()
+                                        .post("/messages")
+                                        .then()
+                                        .statusCode(202);
+                });
 
                 // Consumer deve rejeitar sem requeue; queue principal dead-letter para a DLQ.
-                Awaitility.await()
-                                .atMost(Duration.ofMinutes(2))
-                                .pollDelay(Duration.ofMillis(100))
-                                .pollInterval(DEFAULT_POLL_INTERVAL)
-                                .until(() -> dlqMessageCount() == 1);
+                Allure.step("Aguardar DLQ receber a mensagem", () -> {
+                        Awaitility.await()
+                                        .atMost(Duration.ofMinutes(2))
+                                        .pollDelay(Duration.ofMillis(100))
+                                        .pollInterval(DEFAULT_POLL_INTERVAL)
+                                        .until(() -> dlqMessageCount() == 1);
+                });
 
                 // Como a mensagem foi para DLQ, ela não deve ser persistida.
-                Awaitility.await()
-                                .atMost(Duration.ofSeconds(30))
-                                .pollDelay(Duration.ofMillis(100))
-                                .pollInterval(DEFAULT_POLL_INTERVAL)
-                                .until(() -> countMessagesById(messageId) == 0);
+                Allure.step("Validar que não houve persistência", () -> {
+                        Awaitility.await()
+                                        .atMost(Duration.ofSeconds(30))
+                                        .pollDelay(Duration.ofMillis(100))
+                                        .pollInterval(DEFAULT_POLL_INTERVAL)
+                                        .until(() -> countMessagesById(messageId) == 0);
+                });
         }
 
         @Test
+        @DisplayName("Idempotência: mesmo messageId duas vezes persiste apenas uma vez")
+        @Story("Idempotência")
         void idempotencia_mesmoMessageId_duasVezes_persisteApenasUma() {
                 String messageId = newMessageId("idempotency");
 
@@ -197,35 +223,41 @@ class AsyncMessagingIT {
                                 "messageId", messageId,
                                 "payload", payload);
 
-                RestAssured
-                                .given()
-                                .baseUri(apiBaseUrl)
-                                .contentType(ContentType.JSON)
-                                .body(request)
-                                .when()
-                                .post("/messages")
-                                .then()
-                                .statusCode(202);
+                Allure.step("Publicar mensagem via API (primeira entrega)", () -> {
+                        RestAssured
+                                        .given()
+                                        .filter(new AllureRestAssured())
+                                        .baseUri(apiBaseUrl)
+                                        .contentType(ContentType.JSON)
+                                        .body(request)
+                                        .when()
+                                        .post("/messages")
+                                        .then()
+                                        .statusCode(202);
+                });
 
-                // Reenvio com o mesmo messageId simula retries / duplicação de entrega típica
-                // em EDA.
-                RestAssured
-                                .given()
-                                .baseUri(apiBaseUrl)
-                                .contentType(ContentType.JSON)
-                                .body(request)
-                                .when()
-                                .post("/messages")
-                                .then()
-                                .statusCode(202);
+                Allure.step("Reenviar a mesma mensagem (entrega duplicada)", () -> {
+                        RestAssured
+                                        .given()
+                                        .filter(new AllureRestAssured())
+                                        .baseUri(apiBaseUrl)
+                                        .contentType(ContentType.JSON)
+                                        .body(request)
+                                        .when()
+                                        .post("/messages")
+                                        .then()
+                                        .statusCode(202);
+                });
 
                 // Idempotência é verificada no ponto de efeito (banco), não no "status" do
                 // POST.
-                Awaitility.await()
-                                .atMost(Duration.ofSeconds(60))
-                                .pollDelay(Duration.ofMillis(100))
-                                .pollInterval(DEFAULT_POLL_INTERVAL)
-                                .until(() -> countMessagesById(messageId) == 1);
+                Allure.step("Aguardar efeito final (DB.count=1)", () -> {
+                        Awaitility.await()
+                                        .atMost(Duration.ofSeconds(60))
+                                        .pollDelay(Duration.ofMillis(100))
+                                        .pollInterval(DEFAULT_POLL_INTERVAL)
+                                        .until(() -> countMessagesById(messageId) == 1);
+                });
 
         }
 

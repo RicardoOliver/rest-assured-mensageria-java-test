@@ -190,6 +190,25 @@ jobs:
           echo "=== Verificando HTMLs gerados em target/html-reports/ ==="
           ls -lah target/html-reports/ 2>/dev/null || echo "❌ target/html-reports/ não criado — goals falharam silenciosamente" 
 
+      - name: 🧾 Generate Allure Report
+        if: always()
+        run: |
+          if [ -d target/allure-results ] && [ "$(ls -A target/allure-results 2>/dev/null | wc -l)" -gt 0 ]; then
+            {
+              echo "runner.os=${{ runner.os }}"
+              echo "java.version=${{ env.JAVA_VERSION }}"
+              echo "git.ref=${{ github.ref_name }}"
+              echo "git.sha=${{ github.sha }}"
+              echo "run.number=${{ github.run_number }}"
+              echo "run.id=${{ github.run_id }}"
+            } > target/allure-results/environment.properties
+
+            mvn -B -ntp allure:report || echo "⚠️  allure:report falhou"
+            ls -lah target/site/allure-maven/ 2>/dev/null || echo "⚠️  target/site/allure-maven/ não encontrado"
+          else
+            echo "ℹ️  target/allure-results vazio — Allure report não gerado"
+          fi
+
       # ── Diagnóstico de artefatos ──────────────────────────
       - name: 🔍 Diagnose Build Artifacts
         if: always()
@@ -220,6 +239,9 @@ jobs:
           #      Correto: capturar saída e testar com [ -n ]
           echo "=== 🔎 target/html-reports/ (diretório gerado pelo CI) ==="
           ls -lah target/html-reports/ 2>/dev/null || echo "❌ target/html-reports/ não existe"
+
+          echo "=== 🔎 target/site/allure-maven/ ==="
+          ls -lah target/site/allure-maven/ 2>/dev/null || echo "ℹ️  Allure report não encontrado"
 
           echo "=== 🔎 Procurando surefire.html em todo target/ ==="
           FOUND=$(find target/ -name "surefire.html" 2>/dev/null)
@@ -278,7 +300,7 @@ jobs:
       - name: 📄 Prepare Reports Site
         if: always()
         run: |
-          mkdir -p site/jacoco site/jacoco-it site/surefire site/failsafe
+          mkdir -p site/allure site/jacoco site/jacoco-it site/surefire site/failsafe
 
           # ── Helper: localiza HTML em qualquer subpasta de target/ ─
           # Usa find para não depender do caminho exato que o Maven escolheu
@@ -299,6 +321,15 @@ jobs:
           else
             echo "❌ JaCoCo unit: index.html não encontrado"
             echo "<h2>JaCoCo Unit Report não disponível neste run</h2>" > site/jacoco/index.html
+          fi
+
+          # ── Allure ────────────────────────────────────────
+          if [ -d target/site/allure-maven ] && [ -f target/site/allure-maven/index.html ]; then
+            cp -r target/site/allure-maven/. site/allure/
+            echo "✅ Allure report copiado"
+          else
+            echo "❌ Allure: index.html não encontrado"
+            echo "<h2>Allure Report não disponível neste run</h2>" > site/allure/index.html
           fi
 
           # ── JaCoCo IT ─────────────────────────────────────
