@@ -285,6 +285,9 @@ jobs:
           # (pode ser target/site/, target/reports/, target/maven-reports/, etc.)
           copy_assets() {
             local dest="$1"
+            mkdir -p "${dest}/css" "${dest}/images"
+            [ -d target/html-reports/css ]    && cp -r target/html-reports/css/.    "${dest}/css/"    || true
+            [ -d target/html-reports/images ] && cp -r target/html-reports/images/. "${dest}/images/" || true
             [ -d target/site/css ]    && cp -r target/site/css/.    "${dest}/css/"    || true
             [ -d target/site/images ] && cp -r target/site/images/. "${dest}/images/" || true
           }
@@ -337,6 +340,15 @@ jobs:
             echo "❌ site/index.html não encontrado — adicione o arquivo ao branch main"
             exit 1
           fi
+
+          # ── Artefatos do repositório (para links do index) ──────────
+          mkdir -p site/docs site/grafana site/prometheus
+          [ -d docs ] && cp -r docs/. site/docs/ || true
+          [ -d grafana ] && cp -r grafana/. site/grafana/ || true
+          [ -d prometheus ] && cp -r prometheus/. site/prometheus/ || true
+          [ -f docker-compose.yml ] && cp docker-compose.yml site/docker-compose.yml || true
+          [ -f docker-compose.monitoring.yml ] && cp docker-compose.monitoring.yml site/docker-compose.monitoring.yml || true
+
           echo "=== Estrutura final do site/ ==="
           find site/ -name "index.html" | sort
 
