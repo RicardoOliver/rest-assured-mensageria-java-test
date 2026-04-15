@@ -3,39 +3,164 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Relatórios</title>
+  <title>Relatórios e Artefatos</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; line-height: 1.4; }
-    h1 { margin: 0 0 1rem; }
-    h2 { margin: 1.5rem 0 0.5rem; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; }
-    ul { padding-left: 1.25rem; }
-    li { margin: 0.35rem 0; }
-    code { background: #f3f4f6; padding: 0.1rem 0.25rem; border-radius: 4px; }
-    a { color: #0969da; }
+    :root {
+      --bg: #0b1020;
+      --card: rgba(255, 255, 255, 0.06);
+      --card2: rgba(255, 255, 255, 0.08);
+      --text: rgba(255, 255, 255, 0.92);
+      --muted: rgba(255, 255, 255, 0.65);
+      --border: rgba(255, 255, 255, 0.12);
+      --link: #7dd3fc;
+      --accent: #a78bfa;
+      --shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height: 1.45;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 12% 8%, rgba(167, 139, 250, 0.35), transparent 60%),
+        radial-gradient(1000px 540px at 92% 12%, rgba(125, 211, 252, 0.28), transparent 55%),
+        radial-gradient(900px 560px at 70% 92%, rgba(34, 197, 94, 0.18), transparent 60%),
+        var(--bg);
+    }
+
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 44px 20px 60px; }
+    .hero { display: grid; gap: 14px; margin-bottom: 22px; }
+    .hero h1 { margin: 0; font-size: clamp(28px, 3.5vw, 44px); letter-spacing: -0.03em; }
+    .hero p { margin: 0; color: var(--muted); max-width: 78ch; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .card {
+      grid-column: span 12;
+      background: linear-gradient(180deg, var(--card2), var(--card));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 16px 14px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .card.primary { border-color: rgba(167, 139, 250, 0.45); }
+    .card h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+    .card h3 { margin: 0 0 6px; font-size: 18px; letter-spacing: -0.01em; }
+    .card p { margin: 0 0 12px; color: var(--muted); }
+    .card ul { margin: 0; padding-left: 18px; }
+    .card li { margin: 6px 0; }
+
+    .cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .btn.primary {
+      border-color: rgba(167, 139, 250, 0.45);
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.22), rgba(125, 211, 252, 0.14));
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
+    @media (min-width: 860px) {
+      .card.primary { grid-column: span 7; }
+      .card.secondary { grid-column: span 5; }
+      .card.half { grid-column: span 6; }
+    }
   </style>
 </head>
 <body>
-  <h1>Relatórios e Artefatos</h1>
+  <div class="container">
+    <div class="hero">
+      <h1>Relatórios e Artefatos</h1>
+      <p>
+        Central de evidências do pipeline: execução de testes, rastreabilidade, cobertura e artefatos de observabilidade.
+        Para análise de falhas, priorize o <strong>Allure</strong>.
+      </p>
+    </div>
 
-  <h2>📊 Cobertura de Testes</h2>
-  <ul>
-    <li><a href="jacoco/index.html">JaCoCo (Unitários)</a></li>
-    <li><a href="jacoco-it/index.html">JaCoCo (Integração)</a></li>
-  </ul>
+    <div class="grid">
+      <div class="card primary">
+        <h2>Relatório Principal <span class="pill">recomendado</span></h2>
+        <h3>Allure</h3>
+        <p>Visão executiva + drill-down técnico: suites, passos, anexos e timeline.</p>
+        <div class="cta">
+          <a class="btn primary" href="allure/index.html">Abrir Allure</a>
+          <a class="btn" href="failsafe/index.html">Ver IT (Failsafe)</a>
+          <a class="btn" href="surefire/index.html">Ver Unit (Surefire)</a>
+        </div>
+      </div>
 
-  <h2>🧪 Resultados de Testes</h2>
-  <ul>
-    <li><a href="surefire/index.html">Surefire (Unit Tests)</a></li>
-    <li><a href="failsafe/index.html">Failsafe (Integration Tests)</a></li>
-  </ul>
+      <div class="card secondary">
+        <h2>Cobertura</h2>
+        <h3>JaCoCo</h3>
+        <p>Cobertura por pacote/classe com navegação por linhas e branches.</p>
+        <div class="cta">
+          <a class="btn" href="jacoco/index.html">Unitários</a>
+          <a class="btn" href="jacoco-it/index.html">Integração</a>
+        </div>
+      </div>
 
-  <h2>📁 Artefatos do Projeto</h2>
-  <ul>
-    <li><a href="docs/teste-de-mesa.md">Teste de Mesa (Markdown)</a></li>
-    <li><a href="grafana/dashboards/eda-overview.json">Dashboard Grafana (JSON)</a></li>
-    <li><a href="prometheus/prometheus.yml">Config Prometheus</a></li>
-    <li><a href="docker-compose.yml">docker-compose.yml</a></li>
-    <li><a href="docker-compose.monitoring.yml">docker-compose.monitoring.yml</a></li>
-  </ul>
+      <div class="card half">
+        <h2>Resultados</h2>
+        <h3>Relatórios HTML</h3>
+        <ul>
+          <li><a href="surefire/index.html">Surefire (Unit Tests)</a></li>
+          <li><a href="failsafe/index.html">Failsafe (Integration Tests)</a></li>
+        </ul>
+      </div>
+
+      <div class="card half">
+        <h2>Artefatos</h2>
+        <h3>Projeto & Observabilidade</h3>
+        <ul>
+          <li><a href="docs/teste-de-mesa.md">Teste de Mesa</a></li>
+          <li><a href="grafana/dashboards/eda-overview.json">Dashboard Grafana (JSON)</a></li>
+          <li><a href="prometheus/prometheus.yml">Config Prometheus</a></li>
+          <li><a href="docker-compose.yml">docker-compose.yml</a></li>
+          <li><a href="docker-compose.monitoring.yml">docker-compose.monitoring.yml</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
