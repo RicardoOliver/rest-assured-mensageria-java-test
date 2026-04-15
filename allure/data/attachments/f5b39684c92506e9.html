@@ -1,0 +1,38 @@
+<div>POST to http://localhost:32772/messages</div>
+
+<h4>Body</h4>
+<div>
+    <pre class="preformated-text">
+{
+    &quot;messageId&quot;: &quot;it-79a949c8-99b2-497b-8aff-a2ef618e114b-happy-c4e9d729-fbea-4b37-bab2-8da3dc59a612&quot;,
+    &quot;payload&quot;: {
+        &quot;type&quot;: &quot;ORDER_CREATED&quot;,
+        &quot;data&quot;: {
+            &quot;value&quot;: 10,
+            &quot;orderId&quot;: &quot;123&quot;
+        }
+    }
+}    </pre>
+</div>
+
+<h4>Headers</h4>
+<div>
+        <div>Accept: */*</div>
+        <div>Content-Type: application/json</div>
+</div>
+
+
+
+<h4>Curl</h4>
+<div>
+curl -v -X POST &#39;http://localhost:32772/messages&#39; -H &#39;Accept: */*&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{
+    &quot;messageId&quot;: &quot;it-79a949c8-99b2-497b-8aff-a2ef618e114b-happy-c4e9d729-fbea-4b37-bab2-8da3dc59a612&quot;,
+    &quot;payload&quot;: {
+        &quot;type&quot;: &quot;ORDER_CREATED&quot;,
+        &quot;data&quot;: {
+            &quot;value&quot;: 10,
+            &quot;orderId&quot;: &quot;123&quot;
+        }
+    }
+}&#39;
+</div>
