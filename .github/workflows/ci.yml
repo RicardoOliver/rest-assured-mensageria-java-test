@@ -161,6 +161,8 @@ jobs:
       - name: 📝 Generate Surefire & Failsafe HTML Reports
         if: always()
         run: |
+          mkdir -p target/html-reports
+
           # ── Surefire (unit tests) ─────────────────────────
           # FIX: parâmetro correto é -DoutputDirectory (camelCase), não -Doutput.directory
           #      Forçamos um diretório fixo para não depender do <reporting> do pom.xml
@@ -170,7 +172,13 @@ jobs:
               -DshowSuccess=true \
               -DoutputDirectory="$(pwd)/target/html-reports" \
               || echo "⚠️  surefire-report:report-only falhou"
-            mv target/html-reports/surefire-report.html target/html-reports/surefire.html 2>/dev/null || true
+            if [ -f target/html-reports/surefire-report.html ]; then
+              mv target/html-reports/surefire-report.html target/html-reports/surefire.html 2>/dev/null || true
+            elif [ -f target/reports/surefire-report.html ]; then
+              cp target/reports/surefire-report.html target/html-reports/surefire.html 2>/dev/null || true
+            elif [ -f target/reports/surefire.html ]; then
+              cp target/reports/surefire.html target/html-reports/surefire.html 2>/dev/null || true
+            fi
           else
             echo "ℹ️  target/surefire-reports/ não encontrado — unit tests não rodaram neste perfil"
           fi
@@ -182,13 +190,21 @@ jobs:
             mvn -B -ntp surefire-report:failsafe-report-only \
               -DoutputDirectory="$(pwd)/target/html-reports" \
               || echo "⚠️  surefire-report:failsafe-report-only falhou"
-            mv target/html-reports/failsafe-report.html target/html-reports/failsafe.html 2>/dev/null || true
+            if [ -f target/html-reports/failsafe-report.html ]; then
+              mv target/html-reports/failsafe-report.html target/html-reports/failsafe.html 2>/dev/null || true
+            elif [ -f target/reports/failsafe-report.html ]; then
+              cp target/reports/failsafe-report.html target/html-reports/failsafe.html 2>/dev/null || true
+            elif [ -f target/reports/failsafe.html ]; then
+              cp target/reports/failsafe.html target/html-reports/failsafe.html 2>/dev/null || true
+            fi
           else
             echo "ℹ️  Nenhum XML de failsafe encontrado — HTML não gerado"
           fi
 
           echo "=== Verificando HTMLs gerados em target/html-reports/ ==="
-          ls -lah target/html-reports/ 2>/dev/null || echo "❌ target/html-reports/ não criado — goals falharam silenciosamente" 
+          ls -lah target/html-reports/ 2>/dev/null || true
+          echo "=== Verificando HTMLs gerados em target/reports/ ==="
+          ls -lah target/reports/ 2>/dev/null || true
 
       - name: 🧾 Generate Allure Report
         if: always()
@@ -204,7 +220,8 @@ jobs:
             } > target/allure-results/environment.properties
 
             mvn -B -ntp allure:report || echo "⚠️  allure:report falhou"
-            ls -lah target/site/allure-maven/ 2>/dev/null || echo "⚠️  target/site/allure-maven/ não encontrado"
+            ls -lah target/site/allure-maven/ 2>/dev/null || true
+            ls -lah target/site/allure-maven-plugin/ 2>/dev/null || true
           else
             echo "ℹ️  target/allure-results vazio — Allure report não gerado"
           fi
@@ -242,6 +259,9 @@ jobs:
 
           echo "=== 🔎 target/site/allure-maven/ ==="
           ls -lah target/site/allure-maven/ 2>/dev/null || echo "ℹ️  Allure report não encontrado"
+
+          echo "=== 🔎 target/site/allure-maven-plugin/ ==="
+          ls -lah target/site/allure-maven-plugin/ 2>/dev/null || echo "ℹ️  Allure report não encontrado"
 
           echo "=== 🔎 Procurando surefire.html em todo target/ ==="
           FOUND=$(find target/ -name "surefire.html" 2>/dev/null)
@@ -327,6 +347,9 @@ jobs:
           if [ -d target/site/allure-maven ] && [ -f target/site/allure-maven/index.html ]; then
             cp -r target/site/allure-maven/. site/allure/
             echo "✅ Allure report copiado"
+          elif [ -d target/site/allure-maven-plugin ] && [ -f target/site/allure-maven-plugin/index.html ]; then
+            cp -r target/site/allure-maven-plugin/. site/allure/
+            echo "✅ Allure report copiado"
           else
             echo "❌ Allure: index.html não encontrado"
             echo "<h2>Allure Report não disponível neste run</h2>" > site/allure/index.html
@@ -348,8 +371,15 @@ jobs:
             copy_assets site/surefire
             echo "✅ Surefire HTML copiado"
           else
-            echo "❌ target/html-reports/surefire.html não encontrado — unit tests não rodaram neste perfil"
-            echo "<h2>Surefire Report não disponível neste run</h2>" > site/surefire/index.html
+            FOUND=$(find target/ -name "surefire.html" 2>/dev/null | head -n 1)
+            if [ -n "$FOUND" ]; then
+              cp "$FOUND" site/surefire/index.html
+              copy_assets site/surefire
+              echo "✅ Surefire HTML copiado ($FOUND)"
+            else
+              echo "❌ surefire.html não encontrado — unit tests não rodaram neste perfil"
+              echo "<h2>Surefire Report não disponível neste run</h2>" > site/surefire/index.html
+            fi
           fi
 
           # ── Failsafe HTML ─────────────────────────────────
@@ -358,8 +388,15 @@ jobs:
             copy_assets site/failsafe
             echo "✅ Failsafe HTML copiado"
           else
-            echo "❌ target/html-reports/failsafe.html não encontrado"
-            echo "<h2>Failsafe Report não disponível neste run</h2>" > site/failsafe/index.html
+            FOUND=$(find target/ -name "failsafe.html" 2>/dev/null | head -n 1)
+            if [ -n "$FOUND" ]; then
+              cp "$FOUND" site/failsafe/index.html
+              copy_assets site/failsafe
+              echo "✅ Failsafe HTML copiado ($FOUND)"
+            else
+              echo "❌ failsafe.html não encontrado"
+              echo "<h2>Failsafe Report não disponível neste run</h2>" > site/failsafe/index.html
+            fi
           fi
 
           # ── Index principal ───────────────────────────────
