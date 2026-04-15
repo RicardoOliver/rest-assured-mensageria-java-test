@@ -102,8 +102,8 @@ class AsyncMessagingIT {
     @AfterAll
     void dumpJacocoExecFromApi() {
         try {
-            Files.createDirectories(Paths.get("target", "jacoco"));
-            Path destFile = Paths.get("target", "jacoco", "jacoco-it.exec");
+            Files.createDirectories(Paths.get("target"));
+            Path destFile = Paths.get("target", "jacoco-it.exec");
             Files.deleteIfExists(destFile);
 
             ExecDumpClient client = new ExecDumpClient();

@@ -129,13 +129,13 @@ jobs:
         if: always()
         run: |
           echo "=== Verificando exec files ==="
-          ls -lah target/jacoco/ 2>/dev/null || echo "⚠️  target/jacoco/ não encontrado"
+          ls -lah target/ 2>/dev/null || echo "⚠️  target/ não encontrado"
 
           # Unit report
-          if [ -f target/jacoco/jacoco.exec ]; then
-            echo "✅ jacoco.exec encontrado ($(wc -c < target/jacoco/jacoco.exec) bytes)"
+          if [ -f target/jacoco.exec ]; then
+            echo "✅ jacoco.exec encontrado ($(wc -c < target/jacoco.exec) bytes)"
             mvn -B -ntp jacoco:report \
-              -Djacoco.dataFile=target/jacoco/jacoco.exec \
+              -Djacoco.dataFile=target/jacoco.exec \
               -Djacoco.outputDirectory=target/site/jacoco \
               || echo "⚠️  jacoco:report unit falhou"
           else
@@ -143,10 +143,10 @@ jobs:
           fi
 
           # Integration report — goal correto: jacoco:report (não jacoco:report-integration)
-          if [ -f target/jacoco/jacoco-it.exec ]; then
-            echo "✅ jacoco-it.exec encontrado ($(wc -c < target/jacoco/jacoco-it.exec) bytes)"
+          if [ -f target/jacoco-it.exec ]; then
+            echo "✅ jacoco-it.exec encontrado ($(wc -c < target/jacoco-it.exec) bytes)"
             mvn -B -ntp jacoco:report \
-              -Djacoco.dataFile=target/jacoco/jacoco-it.exec \
+              -Djacoco.dataFile=target/jacoco-it.exec \
               -Djacoco.outputDirectory=target/site/jacoco-it \
               || echo "⚠️  jacoco IT report falhou"
           else
@@ -234,7 +234,7 @@ jobs:
           ls -lah target/ 2>/dev/null || echo "target/ não encontrado"
 
           echo "=== target/jacoco/ ==="
-          ls -lah target/jacoco/ 2>/dev/null || echo "target/jacoco/ não encontrado"
+          ls -lah target/ 2>/dev/null || echo "target/ não encontrado"
 
           echo "=== target/site/ — todos os index.html ==="
           find target/site/ -name "index.html" 2>/dev/null | sort || echo "target/site/ não encontrado"
@@ -277,11 +277,11 @@ jobs:
             || echo "❌ Nenhum TEST-*.xml encontrado — testes podem não ter rodado"
 
           # ── Tamanho dos .exec para validar se o agente gravou dados ──
-          if [ -f target/jacoco/jacoco.exec ]; then
-            echo "✅ jacoco.exec: $(wc -c < target/jacoco/jacoco.exec) bytes"
+          if [ -f target/jacoco.exec ]; then
+            echo "✅ jacoco.exec: $(wc -c < target/jacoco.exec) bytes"
           fi
-          if [ -f target/jacoco/jacoco-it.exec ]; then
-            echo "✅ jacoco-it.exec: $(wc -c < target/jacoco/jacoco-it.exec) bytes"
+          if [ -f target/jacoco-it.exec ]; then
+            echo "✅ jacoco-it.exec: $(wc -c < target/jacoco-it.exec) bytes"
           fi
 
       # ── Validar resultado dos testes ─────────────────────

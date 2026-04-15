@@ -283,7 +283,7 @@
                         </goals>
                         <configuration>
                             <propertyName>surefireArgLine</propertyName>
-                            <destFile>${project.build.directory}/jacoco/jacoco.exec</destFile>
+                            <destFile>${project.build.directory}/jacoco.exec</destFile>
                         </configuration>
                     </execution>
 
@@ -295,7 +295,7 @@
                         </goals>
                         <configuration>
                             <propertyName>failsafeArgLine</propertyName>
-                            <destFile>${project.build.directory}/jacoco/jacoco-it.exec</destFile>
+                            <destFile>${project.build.directory}/jacoco-it.exec</destFile>
                         </configuration>
                     </execution>
 
@@ -307,7 +307,7 @@
                             <goal>report</goal>
                         </goals>
                         <configuration>
-                            <dataFile>${project.build.directory}/jacoco/jacoco.exec</dataFile>
+                            <dataFile>${project.build.directory}/jacoco.exec</dataFile>
                             <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
                         </configuration>
                     </execution>
@@ -320,7 +320,7 @@
                             <goal>report-integration</goal>
                         </goals>
                         <configuration>
-                            <dataFile>${project.build.directory}/jacoco/jacoco-it.exec</dataFile>
+                            <dataFile>${project.build.directory}/jacoco-it.exec</dataFile>
                             <outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
                         </configuration>
                     </execution>
@@ -386,7 +386,7 @@
                                     <goal>check</goal>
                                 </goals>
                                 <configuration>
-                                    <dataFile>${project.build.directory}/jacoco/jacoco.exec</dataFile>
+                                    <dataFile>${project.build.directory}/jacoco.exec</dataFile>
                                     <rules>
                                         <rule>
                                             <element>BUNDLE</element>
@@ -415,7 +415,7 @@
                                 </goals>
                                 <configuration>
                                     <skip>${skipITs}</skip>
-                                    <dataFile>${project.build.directory}/jacoco/jacoco-it.exec</dataFile>
+                                    <dataFile>${project.build.directory}/jacoco-it.exec</dataFile>
                                     <rules>
                                         <rule>
                                             <element>BUNDLE</element>
