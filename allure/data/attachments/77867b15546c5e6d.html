@@ -4,10 +4,12 @@
 <div>
     <pre class="preformated-text">
 {
-    &quot;messageId&quot;: &quot;it-1a5d341c-eec8-4338-899b-0eaa4274dbed-invalid-93a27d8e-28c1-47e7-b557-7141997aad3a&quot;,
+    &quot;messageId&quot;: &quot;it-b90bf8a5-a3e7-49bd-82f6-87e24e87a030-happy-df0ee024-f7e9-4aa4-84d4-f0ee4c0daf36&quot;,
     &quot;payload&quot;: {
+        &quot;type&quot;: &quot;ORDER_CREATED&quot;,
         &quot;data&quot;: {
-            &quot;orderId&quot;: &quot;123&quot;
+            &quot;orderId&quot;: &quot;123&quot;,
+            &quot;value&quot;: 10
         }
     }
 }    </pre>
@@ -24,10 +26,12 @@
 <h4>Curl</h4>
 <div>
 curl -v -X POST &#39;http://localhost:32772/messages&#39; -H &#39;Accept: */*&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{
-    &quot;messageId&quot;: &quot;it-1a5d341c-eec8-4338-899b-0eaa4274dbed-invalid-93a27d8e-28c1-47e7-b557-7141997aad3a&quot;,
+    &quot;messageId&quot;: &quot;it-b90bf8a5-a3e7-49bd-82f6-87e24e87a030-happy-df0ee024-f7e9-4aa4-84d4-f0ee4c0daf36&quot;,
     &quot;payload&quot;: {
+        &quot;type&quot;: &quot;ORDER_CREATED&quot;,
         &quot;data&quot;: {
-            &quot;orderId&quot;: &quot;123&quot;
+            &quot;orderId&quot;: &quot;123&quot;,
+            &quot;value&quot;: 10
         }
     }
 }&#39;
