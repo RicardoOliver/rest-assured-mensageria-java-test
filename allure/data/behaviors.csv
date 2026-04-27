@@ -1,5 +1,5 @@
 "Epic","Feature","Story","FAILED","BROKEN","PASSED","SKIPPED","UNKNOWN"
 "Mensageria","EDA — HTTP → RabbitMQ → Consumer → Postgres","Happy path","0","0","1","0","0"
-"Mensageria","EDA — HTTP → RabbitMQ → Consumer → Postgres","Business rule validation","0","0","1","0","0"
 "","","","0","0","1","0","0"
 "Mensageria","EDA — HTTP → RabbitMQ → Consumer → Postgres","Idempotência","0","0","1","0","0"
+"Mensageria","EDA — HTTP → RabbitMQ → Consumer → Postgres","Business rule validation","0","0","1","0","0"
