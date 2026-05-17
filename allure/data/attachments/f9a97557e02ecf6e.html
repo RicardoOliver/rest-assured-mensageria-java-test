@@ -4,9 +4,11 @@
 <div>
     <pre class="preformated-text">
 {
-    &quot;messageId&quot;: &quot;it-c54f32a4-bbc0-4436-8f93-7e46aab609ed-invalid-b1430494-e591-4ac9-8ce8-edac797a2500&quot;,
+    &quot;messageId&quot;: &quot;it-ab2dceaf-4951-41b7-afd4-abfb876aa4ef-idempotency-467f7f15-e6b6-4811-9352-47ac1a93ea65&quot;,
     &quot;payload&quot;: {
+        &quot;type&quot;: &quot;ORDER_CREATED&quot;,
         &quot;data&quot;: {
+            &quot;value&quot;: 10,
             &quot;orderId&quot;: &quot;123&quot;
         }
     }
@@ -24,9 +26,11 @@
 <h4>Curl</h4>
 <div>
 curl -v -X POST &#39;http://localhost:32772/messages&#39; -H &#39;Accept: */*&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{
-    &quot;messageId&quot;: &quot;it-c54f32a4-bbc0-4436-8f93-7e46aab609ed-invalid-b1430494-e591-4ac9-8ce8-edac797a2500&quot;,
+    &quot;messageId&quot;: &quot;it-ab2dceaf-4951-41b7-afd4-abfb876aa4ef-idempotency-467f7f15-e6b6-4811-9352-47ac1a93ea65&quot;,
     &quot;payload&quot;: {
+        &quot;type&quot;: &quot;ORDER_CREATED&quot;,
         &quot;data&quot;: {
+            &quot;value&quot;: 10,
             &quot;orderId&quot;: &quot;123&quot;
         }
     }
